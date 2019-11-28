@@ -2,3 +2,5 @@ logging:
   level: INFO
   loggers:
     io.tokern: DEBUG
+server:
+  rootPath: /api
