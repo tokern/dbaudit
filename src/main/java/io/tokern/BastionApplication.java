@@ -1,14 +1,20 @@
 package io.tokern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.tokern.api.GitState;
+import io.tokern.resources.Version;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class BastionApplication extends Application<BastionConfiguration> {
 
     public static void main(final String[] args) throws Exception {
-        new BastionApplication().run(args);
+      new BastionApplication().run(args);
     }
 
     @Override
@@ -18,13 +24,15 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
     @Override
     public void initialize(final Bootstrap<BastionConfiguration> bootstrap) {
-        bootstrap.addBundle(new AssetsBundle("/frontend/assets/", "/", "index.html"));
+      bootstrap.addBundle(new AssetsBundle("/frontend/assets/", "/", "index.html"));
     }
 
     @Override
     public void run(final BastionConfiguration configuration,
-                    final Environment environment) {
-        // TODO: implement application
-    }
+                    final Environment environment) throws IOException {
+      InputStream stream =  getClass().getClassLoader().getResourceAsStream("git.properties");
+      GitState gitState = new ObjectMapper().readValue(stream, GitState.class);
 
+      environment.jersey().register(new Version(gitState));
+    }
 }
