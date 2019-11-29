@@ -32,18 +32,19 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: mvn dependency:go-offline
+      - run: mvn package -DskipTests
 
       - save_cache:
           paths:
             - ~/.m2
+            - ~/repo/target/node
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
       # run tests!
       - run: mvn clean test
 
       - store_artifacts:
-          path:  target
+          path:  target/surefire-reports
 
       - codecov/upload:
           file: target/site/jacoco/jacoco.xml
