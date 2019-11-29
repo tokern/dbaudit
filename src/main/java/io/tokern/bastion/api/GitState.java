@@ -1,4 +1,4 @@
-package io.tokern.api;
+package io.tokern.bastion.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
