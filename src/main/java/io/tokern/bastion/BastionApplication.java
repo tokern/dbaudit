@@ -1,12 +1,12 @@
-package io.tokern;
+package io.tokern.bastion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import io.tokern.api.GitState;
-import io.tokern.resources.Version;
+import io.tokern.bastion.api.GitState;
+import io.tokern.bastion.resources.Version;
 
 import java.io.IOException;
 import java.io.InputStream;

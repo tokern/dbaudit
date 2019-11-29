@@ -1,7 +1,7 @@
-package io.tokern.resources;
+package io.tokern.bastion.resources;
 
 import com.codahale.metrics.annotation.Metered;
-import io.tokern.api.GitState;
+import io.tokern.bastion.api.GitState;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

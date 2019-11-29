@@ -1,4 +1,4 @@
-package io.tokern;
+package io.tokern.bastion;
 
 import io.dropwizard.Configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
