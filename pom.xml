@@ -25,7 +25,7 @@
         <yarn.version>v1.19.1</yarn.version>
         <frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>
         <junit.version>5.4.0</junit.version>
-        <jacoco.version>0.8.3</jacoco.version>
+        <jacoco.version>0.8.5</jacoco.version>
     </properties>
 
     <dependencyManagement>
