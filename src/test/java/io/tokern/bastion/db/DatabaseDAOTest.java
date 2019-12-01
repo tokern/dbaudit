@@ -21,18 +21,23 @@ public class DatabaseDAOTest {
   private static DatabaseDAO databaseDAO;
   private static Flyway flyway;
 
+  private static String url = "jdbc:postgresql://localhost/bastiondb";
+  private static String user = "bastion";
+  private static String password = "passw0rd";
+  private static String schema = "bastion_schema";
+
   @BeforeAll
   public static void registerDriver() throws ClassNotFoundException {
     flyway = Flyway.configure()
-        .dataSource("jdbc:postgresql://localhost/jditdb", "jdit_user", "jd1tpassw0rd")
-        .schemas("jdit_schema")
-        .defaultSchema("jdit_schema")
+        .dataSource(url, user, password)
+        .schemas(schema)
+        .defaultSchema(schema)
         .locations("db/migration", "fixtures/flywayMigrations").load();
     flyway.migrate();
 
     Class.forName("org.postgresql.Driver");
 
-    jdbi = Jdbi.create("jdbc:postgresql://localhost/jditdb?currentSchema=jdit_schema", "jdit_user", "jd1tpassw0rd");
+    jdbi = Jdbi.create(url + "?currentSchema=" + schema, user, password);
     jdbi.installPlugin(new SqlObjectPlugin());
     handle = jdbi.open();
     handle.registerRowMapper(ConstructorMapper.factory(Database.class));
