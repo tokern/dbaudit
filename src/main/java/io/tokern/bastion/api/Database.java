@@ -2,6 +2,8 @@ package io.tokern.bastion.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jdbi.v3.core.mapper.reflect.ColumnName;
+import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
 public class Database {
   public final long id;
@@ -11,11 +13,12 @@ public class Database {
   public final String type;
 
   @JsonCreator
-  public Database(@JsonProperty("id") long id,
-                  @JsonProperty("jdbcUrl") String jdbcUrl,
-                  @JsonProperty("userName") String userName,
-                  @JsonProperty("password") String password,
-                  @JsonProperty("type") String type) {
+  @JdbiConstructor
+  public Database(@JsonProperty("id") @ColumnName("id") long id,
+                  @JsonProperty("jdbcUrl") @ColumnName("jdbc_url") String jdbcUrl,
+                  @JsonProperty("userName") @ColumnName("user_name") String userName,
+                  @JsonProperty("password") @ColumnName("password") String password,
+                  @JsonProperty("type") @ColumnName("type") String type) {
     this.id = id;
     this.jdbcUrl = jdbcUrl;
     this.userName = userName;
