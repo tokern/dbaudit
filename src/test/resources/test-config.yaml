@@ -10,10 +10,14 @@ database:
   driverClass: org.postgresql.Driver
 
   # the username
-  user: postgres
+  user: bastion
 
   # the password
   password: passw0rd
 
   # the JDBC URL
-  url: jdbc:postgresql://localhost/postgres
+  url: jdbc:postgresql://localhost/bastiondb
+
+flyway:
+  schemas:
+    - bastion_app

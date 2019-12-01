@@ -27,6 +27,7 @@
         <dropwizard-jdbi3.version>1.2.1</dropwizard-jdbi3.version>
         <frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>
         <flyway.version>6.1.0</flyway.version>
+        <jdbi.version>3.11.1</jdbi.version>
         <junit.version>5.4.0</junit.version>
         <jacoco.version>0.8.5</jacoco.version>
         <postgres.version>42.2.8</postgres.version>
@@ -40,6 +41,13 @@
                 <artifactId>dropwizard-bom</artifactId>
                 <version>${dropwizard.version}</version>
                 <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jdbi</groupId>
+                <artifactId>jdbi3-bom</artifactId>
+                <type>pom</type>
+                <version>${jdbi.version}</version>
                 <scope>import</scope>
             </dependency>
         </dependencies>
@@ -59,11 +67,26 @@
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-sqlobject</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.github.arteam</groupId>
             <artifactId>dropwizard-jdbi3</artifactId>
             <version>${dropwizard-jdbi3.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
