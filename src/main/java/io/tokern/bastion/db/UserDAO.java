@@ -23,7 +23,7 @@ public interface UserDAO {
   @RegisterConstructorMapper(User.class)
   List<User> list();
 
-  @SqlQuery("select id, name, email, password_hash, api_key, org_id from organizations where id = ?")
+  @SqlQuery("select id, name, email, password_hash, api_key, org_id from users where id = ?")
   @RegisterConstructorMapper(User.class)
   User getById(long id);
 

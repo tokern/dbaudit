@@ -83,7 +83,6 @@ public class OrganizationDAOTest {
     assertEquals("https://tokern.io/bastion", organizationNew.slug);
   }
 
-  @Test
   public void delete() {
     Organization organization = organizationDAO.getByName("Google");
 
