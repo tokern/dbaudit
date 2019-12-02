@@ -27,10 +27,6 @@ public class Database {
   }
 
   public Database(String jdbcUrl, String userName, String password, String type) {
-    this.id = 0;
-    this.jdbcUrl = jdbcUrl;
-    this.userName = userName;
-    this.password = password;
-    this.type = type;
+    this(0, jdbcUrl, userName, password, type);
   }
 }
