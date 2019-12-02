@@ -24,6 +24,7 @@
         <node.version>v13.0.1</node.version>
         <yarn.version>v1.19.1</yarn.version>
 
+        <bcrypt.version>0.9.0</bcrypt.version>
         <dropwizard-jdbi3.version>1.2.1</dropwizard-jdbi3.version>
         <frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>
         <flyway.version>6.1.0</flyway.version>
@@ -105,6 +106,12 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
             <version>${xmlbind.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+            <version>${bcrypt.version}</version>
         </dependency>
 
         <dependency>
