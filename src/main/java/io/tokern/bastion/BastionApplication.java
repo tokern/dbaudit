@@ -7,15 +7,14 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.tokern.bastion.api.GitState;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
-import io.tokern.bastion.core.auth.JWTAuthFilter;
 import io.tokern.bastion.core.auth.JWTAuthenticator;
+import io.tokern.bastion.core.auth.JwtAuthFilter;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.resources.RegisterResource;
 import io.tokern.bastion.resources.UserResource;
@@ -67,9 +66,10 @@ public class BastionApplication extends Application<BastionConfiguration> {
       environment.jersey().register(new RegisterResource(jdbi));
 
       final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration());
-      final JWTAuthFilter<User> authFilter = new JWTAuthFilter.Builder<User>()
+      final JwtAuthFilter<User> authFilter = new JwtAuthFilter.Builder<User>()
+          .setJwtTokenManager(tokenManager)
           .setCookieName(configuration.getJwtConfiguration().getCookieName())
-          .setAuthenticator(new JWTAuthenticator(tokenManager))
+          .setAuthenticator(new JWTAuthenticator())
           .buildAuthFilter();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));

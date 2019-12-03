@@ -4,6 +4,7 @@ import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.tokern.bastion.api.*;
+import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.auth.PasswordDigest;
 import io.tokern.bastion.db.OrganizationDAO;
 import io.tokern.bastion.db.UserDAO;
@@ -29,6 +30,9 @@ class BastionApplicationTest {
 
   static Flyway flyway;
 
+  static String validToken;
+  static User loggedInUser;
+
   @BeforeAll
   static void setupDatabase() throws ClassNotFoundException {
     ManagedDataSource dataSource = EXTENSION.getConfiguration().getDataSourceFactory()
@@ -46,6 +50,11 @@ class BastionApplicationTest {
         PasswordDigest.generateFromPassword("passw0rd").getDigest(),
         orgId.intValue()
     )));
+
+    loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("root@tokern.io"));
+    JwtTokenManager tokenManager = new JwtTokenManager(EXTENSION.getConfiguration().getJwtConfiguration());
+
+    validToken = tokenManager.generateToken(loggedInUser);
   }
 
   @AfterAll
@@ -90,5 +99,21 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     assertNotNull(loginResponse);
     assertFalse(loginResponse.token.isEmpty());
+  }
+
+  @Test
+  void protectedResourceTest() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/" + loggedInUser.id)
+        .request().header("Authorization", "BEARER " + validToken).get();
+
+    assertEquals(200, response.getStatus());
+
+    User user = response.readEntity(User.class);
+    assertEquals(loggedInUser.id, user.id);
+    assertEquals(loggedInUser.orgId, user.orgId);
+    assertEquals(loggedInUser.email, user.email);
+    assertEquals(loggedInUser.name, user.name);
+    assertNull(user.passwordHash);
   }
 }

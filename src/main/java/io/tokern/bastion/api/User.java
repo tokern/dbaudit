@@ -1,6 +1,7 @@
 package io.tokern.bastion.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.tokern.bastion.core.auth.PasswordDigest;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
@@ -13,6 +14,7 @@ public class User implements Principal {
   public final int id;
   public final String name;
   public final String email;
+  @JsonIgnore
   public final byte[] passwordHash;
   public final String apiKey;
   public final int orgId;
