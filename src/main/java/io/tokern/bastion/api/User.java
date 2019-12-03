@@ -9,7 +9,7 @@ public class User {
   public final int id;
   public final String name;
   public final String email;
-  public final String passwordHash;
+  public final byte[] passwordHash;
   public final String apiKey;
   public final int orgId;
 
@@ -19,7 +19,7 @@ public class User {
       @JsonProperty("id") @ColumnName("id") int id,
       @JsonProperty("name") @ColumnName("name") String name,
       @JsonProperty("email") @ColumnName("email") String email,
-      @JsonProperty("passwordHash") @ColumnName("password_hash") String passwordHash,
+      @JsonProperty("passwordHash") @ColumnName("password_hash") byte[] passwordHash,
       @JsonProperty("apiKey") @ColumnName("api_key") String apiKey,
       @JsonProperty("orgId") @ColumnName("org_id") int orgId) {
     this.id = id;
@@ -30,7 +30,11 @@ public class User {
     this.orgId = orgId;
   }
 
-  public User(String name, String email, String passwordHash, String apiKey, int orgId) {
+  public User(String name, String email, byte[] passwordHash, String apiKey, int orgId) {
     this(0, name, email, passwordHash, apiKey, orgId);
+  }
+
+  public User(String name, String email, byte[] passwordHash, int orgId) {
+    this(0, name, email, passwordHash, null, orgId);
   }
 }

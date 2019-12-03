@@ -11,6 +11,7 @@ import io.dropwizard.setup.Environment;
 import io.tokern.bastion.api.GitState;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
+import io.tokern.bastion.resources.RegisterResource;
 import io.tokern.bastion.resources.Version;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
@@ -45,26 +46,16 @@ public class BastionApplication extends Application<BastionConfiguration> {
       });
     }
 
-    final Flyway getFlyway(Environment environment,
-                     BastionConfiguration configuration) {
-      ManagedDataSource dataSource = configuration.getDataSourceFactory().build(environment.metrics(), "flyway");
-      final Flyway flyway = configuration.getFlywayFactory().build(dataSource);
-      return flyway;
-    }
-
     @Override
     public void run(final BastionConfiguration configuration,
                     final Environment environment) throws IOException {
       InputStream stream =  getClass().getClassLoader().getResourceAsStream("git.properties");
       GitState gitState = new ObjectMapper().readValue(stream, GitState.class);
 
-      final Flyway flyway = getFlyway(environment, configuration);
-      flyway.migrate();
-      flyway.clean();
-
       final JdbiFactory factory = new JdbiFactory();
       final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
       environment.jersey().register(new Version(gitState));
+      environment.jersey().register(new RegisterResource(jdbi));
     }
 }
