@@ -4,16 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.arteam.jdbi3.JdbiFactory;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.tokern.bastion.api.GitState;
+import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
+import io.tokern.bastion.core.auth.JWTAuthFilter;
+import io.tokern.bastion.core.auth.JWTAuthenticator;
+import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.resources.RegisterResource;
+import io.tokern.bastion.resources.UserResource;
 import io.tokern.bastion.resources.Version;
 import org.flywaydb.core.Flyway;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 
 import java.io.IOException;
@@ -57,5 +65,18 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
       environment.jersey().register(new Version(gitState));
       environment.jersey().register(new RegisterResource(jdbi));
+
+      final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration());
+      final JWTAuthFilter<User> authFilter = new JWTAuthFilter.Builder<User>()
+          .setCookieName(configuration.getJwtConfiguration().getCookieName())
+          .setAuthenticator(new JWTAuthenticator(tokenManager))
+          .buildAuthFilter();
+
+      environment.jersey().register(new UserResource(jdbi, tokenManager));
+
+      environment.jersey().register(new AuthDynamicFeature(authFilter));
+      environment.jersey().register(RolesAllowedDynamicFeature.class);
+      //Required to use @Auth to inject a custom Principal type into your resource
+      environment.jersey().register(new AuthValueFactoryProvider.Binder<>(User.class));
     }
 }

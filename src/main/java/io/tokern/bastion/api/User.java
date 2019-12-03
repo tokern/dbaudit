@@ -2,10 +2,14 @@ package io.tokern.bastion.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.tokern.bastion.core.auth.PasswordDigest;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
 import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
-public class User {
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+
+public class User implements Principal {
   public final int id;
   public final String name;
   public final String email;
@@ -36,5 +40,18 @@ public class User {
 
   public User(String name, String email, byte[] passwordHash, int orgId) {
     this(0, name, email, passwordHash, null, orgId);
+  }
+
+  public User(int id, String name, String email, int orgId) {
+    this(id, name, email, null, null, orgId);
+  }
+
+  public boolean login(String password) {
+    return PasswordDigest.fromDigest(this.passwordHash).checkPassword(password.getBytes(StandardCharsets.UTF_8));
+  }
+
+  @Override
+  public String getName() {
+    return name;
   }
 }
