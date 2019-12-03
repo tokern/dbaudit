@@ -43,7 +43,6 @@ public class OrganizationDAOTest {
     handle.registerRowMapper(ConstructorMapper.factory(Organization.class));
 
     organizationDAO = handle.attach(OrganizationDAO.class);
-
  }
 
   @AfterAll

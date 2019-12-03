@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -94,8 +95,9 @@ public class UserDAOTest {
   }
 
   @Test
-  public void createDatabase() {
-    Long id = userDAO.insert(new User("tokern_sysops", "sysops@tokern", "SYSYSY", "APISYS", 1));
+  public void createUser() {
+    Long id = userDAO.insert(new User("tokern_sysops", "sysops@tokern",
+        "SYSYSY".getBytes(StandardCharsets.UTF_8), "APISYS", 1));
 
     List<Map<String,Object>> rows = handle.select("select * from users where id=?", id)
         .mapToMap().list();
@@ -106,7 +108,7 @@ public class UserDAOTest {
     assertEquals(id.intValue(), row.get("id"));
     assertEquals("tokern_sysops", row.get("name"));
     assertEquals("sysops@tokern", row.get("email"));
-    assertEquals("SYSYSY", row.get("password_hash"));
+    assertNotNull(row.get("password_hash"));
     assertEquals("APISYS", row.get("api_key"));
     assertEquals(1, row.get("org_id"));
   }

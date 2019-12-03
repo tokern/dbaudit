@@ -30,7 +30,7 @@ insert into users (name, email, password_hash, api_key, org_id)
 values ('google_admin', 'admin@google', 'PHPPHP', 'apiapi', 2);
 
 insert into users (name, email, password_hash, api_key, org_id)
-values ('tokern_ops', 'admin@tokern', 'PHPPHP', 'apiapi', 1);
+values ('tokern_ops', 'ops@tokern', 'PHPPHP', 'apiapi', 1);
 
 insert into users (name, email, password_hash, api_key, org_id)
 values ('google_sysops', 'sysops@google', 'PHPPHP', 'apiapi', 2);

@@ -16,7 +16,7 @@ database:
   password: passw0rd
 
   # the JDBC URL
-  url: jdbc:postgresql://localhost/bastiondb
+  url: jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app
 
 flyway:
   schemas:
