@@ -69,7 +69,7 @@ public class RegisterDAOTest {
     assertNotNull(organization);
     assertEquals("testSlug", organization.slug);
 
-    List<User> users = userDAO.getByOrg(organization.id);
+    List<User> users = userDAO.listByOrg(organization.id);
     assertEquals(1, users.size());
 
     User user = users.get(0);

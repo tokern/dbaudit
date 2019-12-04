@@ -51,7 +51,7 @@ public class JwtAuthenticator implements Authenticator<String, User> {
       LOGGER.warn("Failed JWT token verification");
       return Optional.empty();
     }
-    User user = this.jdbi.withExtension(UserDAO.class, dao -> dao.getById(id.asInt()));
+    User user = this.jdbi.withExtension(UserDAO.class, dao -> dao.getById(id.asInt(), orgId.asInt()));
 
     if (user == null
         || !user.name.equals(name.asString())

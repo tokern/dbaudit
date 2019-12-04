@@ -56,22 +56,22 @@ public class DatabaseDAOTest {
 
   @Test
   public void selectAll() {
-    List<Database> databaseList = databaseDAO.list();
+    List<Database> databaseList = databaseDAO.listByOrgId(1);
     assertEquals(3, databaseList.size());
   }
 
   @Test
   public void selectByIdurl() {
-    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1");
+    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
     assertEquals("jdbc://localhost/bastion_1", database.jdbcUrl);
 
-    Database byId = databaseDAO.getById(database.id);
+    Database byId = databaseDAO.getById(database.id, 1);
     assertNotNull(byId);
   }
 
   @Test
   public void update() {
-    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1");
+    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
 
     Database updated = new Database(database.id,
         database.jdbcUrl,
@@ -81,17 +81,17 @@ public class DatabaseDAOTest {
 
     databaseDAO.update(updated);
 
-    Database databaseNew = databaseDAO.getById(database.id);
+    Database databaseNew = databaseDAO.getById(database.id, 1);
     assertEquals("userNew", databaseNew.userName);
   }
 
   @Test
   public void delete() {
-    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_3");
+    Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_3", 1);
 
-    databaseDAO.deleteById(database.id);
+    databaseDAO.deleteById(database.id, 1);
 
-    Database databaseNew = databaseDAO.getById(database.id);
+    Database databaseNew = databaseDAO.getById(database.id, 1);
     assertNull(databaseNew);
   }
 
