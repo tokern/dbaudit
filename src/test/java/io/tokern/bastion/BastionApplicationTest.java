@@ -34,6 +34,7 @@ class BastionApplicationTest {
       new DropwizardAppExtension<>(BastionApplication.class, resourceFilePath("test-config.yaml"));
 
   static Flyway flyway;
+  static Jdbi jdbi;
 
   static String adminToken;
   static String dbAdminToken;
@@ -42,6 +43,7 @@ class BastionApplicationTest {
   static User loggedInAdmin;
   static User loggedInDbAdmin;
   static User loggedInUser;
+  static User updateUser;
 
   @BeforeAll
   static void setupDatabase() throws ClassNotFoundException {
@@ -52,7 +54,7 @@ class BastionApplicationTest {
 
     Class.forName("org.postgresql.Driver");
 
-    Jdbi jdbi = Jdbi.create(dataSource);
+    jdbi = Jdbi.create(dataSource);
     jdbi.installPlugin(new SqlObjectPlugin());
     Long orgId = jdbi.withExtension(OrganizationDAO.class, dao -> dao.insert(new Organization("Tokern", "http://tokern.io")));
     jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
@@ -76,9 +78,17 @@ class BastionApplicationTest {
         orgId.intValue()
     )));
 
+    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
+        "tokern_put", "put@tokern.io",
+        PasswordDigest.generateFromPassword("putw0rd").getDigest(),
+        User.SystemRoles.USER,
+        orgId.intValue()
+    )));
+
     loggedInAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("root@tokern.io"));
     loggedInDbAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("db@tokern.io"));
     loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
+    updateUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("put@tokern.io"));
 
     JwtTokenManager tokenManager = new JwtTokenManager(EXTENSION.getConfiguration().getJwtConfiguration().getJwtSecret());
 
@@ -177,5 +187,62 @@ class BastionApplicationTest {
     assertEquals(caller.orgId, user.orgId);
     assertEquals(caller.email, user.email);
     assertEquals(caller.name, user.name);
+  }
+
+  @Test
+  void createUserTest() {
+    User.Request request = new User.Request("tokern_devops", "devops@tokern.io", "opsw0rd", "USER");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/")
+        .request().header("Authorization", "BEARER " + adminToken).post(entity);
+
+    assertEquals(200, response.getStatus());
+    User user = response.readEntity(User.class);
+
+    assertEquals("devops@tokern.io", user.email);
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void refreshToken(User caller, String token) {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
+        .request().header("Authorization", "BEARER " + token).get();
+
+    String refreshed = response.readEntity(String.class);
+
+    assertEquals(200, response.getStatus());
+    assertNotNull(refreshed);
+  }
+
+  @Test
+  void updateUserTest() {
+    User.Request request = new User.Request(null, "putter@tokern.io", null, null);
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/" + updateUser.id)
+        .request().header("Authorization", "BEARER " + adminToken).put(entity);
+
+    assertEquals(200, response.getStatus());
+    User user = response.readEntity(User.class);
+
+    assertEquals("putter@tokern.io", user.email);
+  }
+
+  @Test
+  void changePasswordTest() {
+    User.PasswordChange change = new User.PasswordChange("passw0rd", "changew0rd");
+    Entity<?> entity = Entity.entity(change, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/changePassword")
+            .request().header("Authorization", "BEARER " + userToken).put(entity);
+
+    assertEquals(200, response.getStatus());
+    User user = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
+    assertTrue(user.login("changew0rd"));
   }
 }
