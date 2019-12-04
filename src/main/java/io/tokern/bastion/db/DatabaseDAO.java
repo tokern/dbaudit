@@ -17,18 +17,18 @@ public interface DatabaseDAO {
   @SqlUpdate("update dbs set jdbc_url=:jdbcUrl, user_name = :userName, password=:password, type=:type where id = :id")
   void update(@BindFields Database database);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs")
+  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs where org_id = ?")
   @RegisterConstructorMapper(Database.class)
-  List<Database> list();
+  List<Database> listByOrgId(int orgId);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs where id = ?")
+  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs where id = ? and org_id = ?")
   @RegisterConstructorMapper(Database.class)
-  Database getById(long id);
+  Database getById(long id, int orgId);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs where jdbc_url = ?")
+  @SqlQuery("select id, jdbc_url, user_name, password, type from dbs where jdbc_url = ? and org_id = ?")
   @RegisterConstructorMapper(Database.class)
-  Database getByUrl(String jdbcUrl);
+  Database getByUrl(String jdbcUrl, int orgId);
 
-  @SqlUpdate("delete from dbs where id=?")
-  void deleteById(long id);
+  @SqlUpdate("delete from dbs where id=? and org_id = ?")
+  void deleteById(long id, int orgId);
 }

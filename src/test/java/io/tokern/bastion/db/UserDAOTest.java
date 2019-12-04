@@ -58,19 +58,19 @@ public class UserDAOTest {
 
   @Test
   public void selectAll() {
-    List<User> userList = userDAO.list();
-    assertEquals(4, userList.size());
+    List<User> userList = userDAO.listByOrg(1);
+    assertEquals(2, userList.size());
   }
 
   @Test
   public void selectById() {
-    User user = userDAO.getById(1);
+    User user = userDAO.getById(1, 1);
     assertEquals("tokern_admin", user.name);
   }
 
   @Test
   public void update() {
-    User user = userDAO.getById(1);
+    User user = userDAO.getById(1, 1);
     assertEquals("admin@tokern", user.email);
 
     User updated = new User(user.id,
@@ -82,17 +82,17 @@ public class UserDAOTest {
 
     userDAO.update(updated);
 
-    User userNew = userDAO.getById(1);
+    User userNew = userDAO.getById(1,1);
     assertEquals("admin2@tokern", userNew.email);
   }
 
   @Test
   public void delete() {
-    User user = userDAO.getById(2);
+    User user = userDAO.getById(2, 2);
 
-    userDAO.deleteById(user.id);
+    userDAO.deleteById(user.id, 2);
 
-    assertNull(userDAO.getById(2));
+    assertNull(userDAO.getById(2, 2));
   }
 
   @Test

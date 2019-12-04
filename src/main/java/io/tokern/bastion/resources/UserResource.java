@@ -39,7 +39,7 @@ public class UserResource {
   @Path("/{userId}")
   public User getUser(@Auth final User principal,
                       @PathParam("userId") final int userId) {
-    return jdbi.withExtension(UserDAO.class, dao -> dao.getById(userId));
+    return jdbi.withExtension(UserDAO.class, dao -> dao.getById(userId, principal.orgId));
   }
 
   @Path("/login")
@@ -82,7 +82,7 @@ public class UserResource {
   public Response updateUser(@Auth final User admin,
                              @PathParam("userId") final long userId,
                              @Valid final User.Request request) {
-    User user = jdbi.withExtension(UserDAO.class, dao -> dao.getById(userId));
+    User user = jdbi.withExtension(UserDAO.class, dao -> dao.getById(userId, admin.orgId));
 
     User updatedUser = new User(
         user.id,
@@ -95,7 +95,7 @@ public class UserResource {
     );
 
     jdbi.useExtension(UserDAO.class, dao-> dao.update(updatedUser));
-    return Response.ok(jdbi.withExtension(UserDAO.class, dao -> dao.getById(user.id))).build();
+    return Response.ok(jdbi.withExtension(UserDAO.class, dao -> dao.getById(user.id, admin.orgId))).build();
   }
 
   @PermitAll
@@ -118,5 +118,4 @@ public class UserResource {
     }
     throw new WebApplicationException("Current Password is incorrect!", Response.Status.UNAUTHORIZED);
   }
-
 }

@@ -19,22 +19,18 @@ public interface UserDAO {
       "system_role=:systemRole::system_role_type, org_id=:orgId where id = :id")
   void update(@BindFields User user);
 
-  @SqlQuery("select id, name, email, password_hash, system_role, org_id from users")
-  @RegisterConstructorMapper(User.class)
-  List<User> list();
-
   @SqlQuery("select id, name, email, password_hash, system_role, org_id from users where org_id = ?")
   @RegisterConstructorMapper(User.class)
-  List<User> getByOrg(int orgId);
+  List<User> listByOrg(int orgId);
 
   @SqlQuery("select id, name, email, password_hash, system_role, org_id from users where email = ?")
   @RegisterConstructorMapper(User.class)
   User getByEmail(String email);
 
-  @SqlQuery("select id, name, email, password_hash, system_role, org_id from users where id = ?")
+  @SqlQuery("select id, name, email, password_hash, system_role, org_id from users where id = ? and org_id = ?")
   @RegisterConstructorMapper(User.class)
-  User getById(long id);
+  User getById(long id, int orgId);
 
-  @SqlUpdate("delete from users where id=?")
-  void deleteById(long id);
+  @SqlUpdate("delete from users where id=? and org_id = ?")
+  void deleteById(long id, int org_id);
 }
