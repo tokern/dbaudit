@@ -6,28 +6,31 @@ import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.tokern.bastion.api.*;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.auth.PasswordDigest;
+import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.OrganizationDAO;
 import io.tokern.bastion.db.UserDAO;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.crypto.Data;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
 class BastionApplicationTest {
   public static final DropwizardAppExtension<BastionConfiguration> EXTENSION =
@@ -45,6 +48,7 @@ class BastionApplicationTest {
   static User loggedInUser;
   static User updateUser;
 
+  static List<Database> databases;
   @BeforeAll
   static void setupDatabase() throws ClassNotFoundException {
     ManagedDataSource dataSource = EXTENSION.getConfiguration().getDataSourceFactory()
@@ -95,6 +99,23 @@ class BastionApplicationTest {
     adminToken = tokenManager.generateToken(loggedInAdmin);
     dbAdminToken = tokenManager.generateToken(loggedInDbAdmin);
     userToken = tokenManager.generateToken(loggedInUser);
+
+    // Insert a few databases
+    jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
+        "jdbc://localhost/bastion1",
+        "bastion_user",
+        "bastion_password",
+        "postgresql",
+        orgId.intValue()
+    )));
+
+    jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
+        "jdbc://localhost/bastion2",
+        "bastion_user",
+        "bastion_password",
+        "mysql",
+        orgId.intValue()
+    )));
   }
 
   @AfterAll
@@ -244,5 +265,82 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     User user = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
     assertTrue(user.login("changew0rd"));
+  }
+
+  private static Stream<Arguments> provideAdminAndDbAdmin() {
+    return Stream.of(
+        Arguments.of(loggedInAdmin, adminToken),
+        Arguments.of(loggedInDbAdmin, dbAdminToken)
+    );
+  }
+
+  @Order(1)
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void listDatabases(User user, String token) {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/")
+            .request().header("Authorization", "BEARER " + token).get();
+
+    assertEquals(200, response.getStatus());
+    List<Database> databases = response.readEntity(new GenericType<List<Database>>() {});
+
+    assertEquals(2, databases.size());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void getDatabase(User user, String token) {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/1")
+            .request().header("Authorization", "BEARER " + token).get();
+
+    assertEquals(200, response.getStatus());
+    Database database = response.readEntity(Database.class);
+
+    assertEquals("jdbc://localhost/bastion1", database.jdbcUrl);
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideAdminAndDbAdmin")
+  void createDatabase(User user, String token) {
+    Database database = new Database("jdbc://localhost/bastion3", "user", "password", "mysql", user.orgId);
+    Entity<?> entity = Entity.entity(database, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/")
+            .request().header("Authorization", "BEARER " + token).post(entity);
+
+    assertEquals(200, response.getStatus());
+    Database created = response.readEntity(Database.class);
+
+    assertEquals("jdbc://localhost/bastion3", created.jdbcUrl);
+  }
+
+  @Test
+  void deleteDatabase() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/2")
+            .request().header("Authorization", "BEARER " + dbAdminToken).delete();
+
+    assertEquals(200, response.getStatus());
+    Database database = jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(2, loggedInDbAdmin.orgId));
+    assertNull(database);
+  }
+
+  @Test
+  void updateDatabase() {
+    Database.UpdateRequest request = new Database.UpdateRequest();
+    request.setUserName("tokern");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/1")
+            .request().header("Authorization", "BEARER " + dbAdminToken).put(entity);
+
+    assertEquals(200, response.getStatus());
+    Database updated = response.readEntity(Database.class);
+
+    assertEquals("tokern", updated.userName);
   }
 }
