@@ -4,7 +4,7 @@ import io.dropwizard.Configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.db.DataSourceFactory;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
-import io.tokern.bastion.core.auth.JWTConfiguration;
+import io.tokern.bastion.core.auth.JwtConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -21,7 +21,7 @@ public class BastionConfiguration extends Configuration {
   @Valid
   @NotNull
 
-  private JWTConfiguration jwtConfiguration = new JWTConfiguration();
+  private JwtConfiguration jwtConfiguration = new JwtConfiguration();
 
   @JsonProperty("database")
   public void setDataSourceFactory(DataSourceFactory factory) {
@@ -44,12 +44,12 @@ public class BastionConfiguration extends Configuration {
   }
 
   @JsonProperty("jwt")
-  public JWTConfiguration getJwtConfiguration() {
+  public JwtConfiguration getJwtConfiguration() {
     return jwtConfiguration;
   }
 
   @JsonProperty("jwt")
-  public void setJwtConfiguration(JWTConfiguration jwtConfiguration) {
+  public void setJwtConfiguration(JwtConfiguration jwtConfiguration) {
     this.jwtConfiguration = jwtConfiguration;
   }
 }

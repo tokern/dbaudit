@@ -2,7 +2,7 @@ package io.tokern.bastion.core.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class JWTConfiguration {
+public class JwtConfiguration {
   private String jwtSecret = "secret";
   private int jwtExpirySeconds = 3600;
   private String cookieName = "jwtTokern";

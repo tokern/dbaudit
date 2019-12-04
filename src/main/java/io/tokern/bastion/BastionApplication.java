@@ -13,13 +13,13 @@ import io.tokern.bastion.api.GitState;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
-import io.tokern.bastion.core.auth.JWTAuthenticator;
+import io.tokern.bastion.core.auth.JwtAuthenticator;
 import io.tokern.bastion.core.auth.JwtAuthFilter;
+import io.tokern.bastion.core.auth.JwtAuthorizer;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.resources.RegisterResource;
 import io.tokern.bastion.resources.UserResource;
 import io.tokern.bastion.resources.Version;
-import org.flywaydb.core.Flyway;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 
@@ -65,11 +65,12 @@ public class BastionApplication extends Application<BastionConfiguration> {
       environment.jersey().register(new Version(gitState));
       environment.jersey().register(new RegisterResource(jdbi));
 
-      final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration());
+      final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration().getJwtSecret());
       final JwtAuthFilter authFilter = new JwtAuthFilter.Builder()
           .setCookieName(configuration.getJwtConfiguration().getCookieName())
           .setPrefix("BEARER")
-          .setAuthenticator(new JWTAuthenticator(configuration.getJwtConfiguration()))
+          .setAuthenticator(new JwtAuthenticator(configuration.getJwtConfiguration().getJwtSecret(), jdbi))
+          .setAuthorizer(new JwtAuthorizer())
           .buildAuthFilter();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));

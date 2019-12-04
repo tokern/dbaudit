@@ -17,7 +17,7 @@ public class RegisterDAO {
       UserDAO userDAO = h.attach(UserDAO.class);
       OrganizationDAO orgDao = h.attach(OrganizationDAO.class);
       Long orgId = orgDao.insert(new Organization(register.orgName, register.orgSlug));
-      userDAO.insert(new User(register.userName, register.email, passwordHash, orgId.intValue()));
+      userDAO.insert(new User(register.userName, register.email, passwordHash, User.SystemRoles.ADMIN, orgId.intValue()));
     });
   }
 }
