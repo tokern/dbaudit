@@ -3,19 +3,17 @@ package io.tokern.bastion.core.auth;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.AuthenticationException;
+import io.tokern.bastion.api.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Priority;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,16 +21,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 
 @Priority(Priorities.AUTHENTICATION)
-public class JwtAuthFilter<P extends Principal> extends AuthFilter<DecodedJWT, P> {
+public class JwtAuthFilter extends AuthFilter<String, User> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-  private final JwtTokenManager tokenManager;
   private final String cookieName;
-  private final String prefix = "BEARER";
 
-  private JwtAuthFilter(JwtTokenManager tokenManager, String cookieName) {
-    this.tokenManager = tokenManager;
+  private JwtAuthFilter(String cookieName) {
     this.cookieName = cookieName;
   }
 
@@ -41,47 +36,12 @@ public class JwtAuthFilter<P extends Principal> extends AuthFilter<DecodedJWT, P
     final Optional<String> optionalToken = getTokenFromCookieOrHeader(requestContext);
 
     if (optionalToken.isPresent()) {
-      try {
-        final DecodedJWT jwt = verifyToken(optionalToken.get());
-        final Optional<P> principal = authenticator.authenticate(jwt);
-
-        if (principal.isPresent()) {
-          requestContext.setSecurityContext(new SecurityContext() {
-
-            @Override
-            public Principal getUserPrincipal() {
-              return principal.get();
-            }
-
-            @Override
-            public boolean isUserInRole(String role) {
-              return authorizer.authorize(principal.get(), role);
-            }
-
-            @Override
-            public boolean isSecure() {
-              return requestContext.getSecurityContext().isSecure();
-            }
-
-            @Override
-            public String getAuthenticationScheme() {
-              return SecurityContext.BASIC_AUTH;
-            }
-
-          });
-          return;
-        }
-      } catch (AuthenticationException ex) {
-        LOGGER.warn("Error authenticating credentials", ex);
-        throw new InternalServerErrorException();
+      LOGGER.info("Token found. Attempting to authenticate");
+      if (!authenticate(requestContext, optionalToken.get(), "TOKEN")) {
+        LOGGER.warn("Token authentication failed");
+        throw new WebApplicationException(unauthorizedHandler.buildResponse(prefix, realm));
       }
     }
-
-    throw new WebApplicationException(unauthorizedHandler.buildResponse(prefix, realm));
-  }
-
-  private DecodedJWT verifyToken(String rawToken) throws AuthenticationException {
-    return tokenManager.verifyToken(rawToken);
   }
 
   private Optional<String> getTokenFromCookieOrHeader(ContainerRequestContext requestContext) {
@@ -117,25 +77,18 @@ public class JwtAuthFilter<P extends Principal> extends AuthFilter<DecodedJWT, P
     return Optional.empty();
   }
 
-  public static class Builder<P extends Principal> extends AuthFilterBuilder<DecodedJWT, P, JwtAuthFilter<P>> {
-
-    private JwtTokenManager tokenManager;
+  public static class Builder extends AuthFilterBuilder<String, User, JwtAuthFilter> {
     private String cookieName;
 
-    public Builder<P> setJwtTokenManager(JwtTokenManager tokenManager) {
-      this.tokenManager = tokenManager;
-      return this;
-    }
-
-    public Builder<P> setCookieName(String cookieName) {
+    public Builder setCookieName(String cookieName) {
       this.cookieName = cookieName;
       return this;
     }
 
     @Override
-    protected JwtAuthFilter<P> newInstance() {
-      checkNotNull(tokenManager, "JwtTokenManager is not set");
-      return new JwtAuthFilter<>(tokenManager, cookieName);
+    protected JwtAuthFilter newInstance() {
+      checkNotNull(cookieName, "cookieName is not set");
+      return new JwtAuthFilter(cookieName);
     }
   }
 }

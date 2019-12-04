@@ -66,10 +66,10 @@ public class BastionApplication extends Application<BastionConfiguration> {
       environment.jersey().register(new RegisterResource(jdbi));
 
       final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration());
-      final JwtAuthFilter<User> authFilter = new JwtAuthFilter.Builder<User>()
-          .setJwtTokenManager(tokenManager)
+      final JwtAuthFilter authFilter = new JwtAuthFilter.Builder()
           .setCookieName(configuration.getJwtConfiguration().getCookieName())
-          .setAuthenticator(new JWTAuthenticator())
+          .setPrefix("BEARER")
+          .setAuthenticator(new JWTAuthenticator(configuration.getJwtConfiguration()))
           .buildAuthFilter();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
