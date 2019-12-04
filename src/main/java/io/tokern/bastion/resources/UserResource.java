@@ -5,6 +5,7 @@ import io.tokern.bastion.api.LoginRequest;
 import io.tokern.bastion.api.LoginResponse;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.auth.JwtTokenManager;
+import io.tokern.bastion.core.auth.PasswordDigest;
 import io.tokern.bastion.db.UserDAO;
 import org.jdbi.v3.core.Jdbi;
 
@@ -54,4 +55,68 @@ public class UserResource {
 
     throw new WebApplicationException("Email or Password is incorrect!", Response.Status.UNAUTHORIZED);
   }
+
+  @RolesAllowed("ADMIN")
+  @POST
+  public User createUser(@Auth final User admin, @Valid final User.Request request) {
+    User newUser = new User(request.name, request.email,
+        PasswordDigest.generateFromPassword(request.password).getDigest(),
+        User.SystemRoles.valueOf(request.systemRole),
+        admin.orgId);
+
+    jdbi.useExtension(UserDAO.class, dao-> dao.insert(newUser));
+
+    return jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail(newUser.email));
+  }
+
+  @PermitAll
+  @Path("/refreshJWT")
+  @GET
+  public Response refreshJWT(@Auth final User principal) {
+    return Response.ok(new LoginResponse(jwtTokenManager.generateToken(principal))).build();
+  }
+
+  @RolesAllowed("ADMIN")
+  @Path("/{userId}")
+  @PUT
+  public Response updateUser(@Auth final User admin,
+                             @PathParam("userId") final long userId,
+                             @Valid final User.Request request) {
+    User user = jdbi.withExtension(UserDAO.class, dao -> dao.getById(userId));
+
+    User updatedUser = new User(
+        user.id,
+        request.name == null ? user.name : request.name,
+        request.email == null ? user.email : request.email,
+        request.password == null ? user.passwordHash :
+            PasswordDigest.generateFromPassword(request.password).getDigest(),
+        request.systemRole == null ? user.systemRole : User.SystemRoles.valueOf(request.systemRole),
+        user.orgId
+    );
+
+    jdbi.useExtension(UserDAO.class, dao-> dao.update(updatedUser));
+    return Response.ok(jdbi.withExtension(UserDAO.class, dao -> dao.getById(user.id))).build();
+  }
+
+  @PermitAll
+  @PUT
+  @Path("/changePassword")
+  public Response changePassword(@Auth final User principal,
+                             @Valid final User.PasswordChange request) {
+    if (principal.login(request.currentPassword)) {
+      User updated = new User(
+          principal.id,
+          principal.name,
+          principal.email,
+          PasswordDigest.generateFromPassword(request.newPassword).getDigest(),
+          principal.systemRole,
+          principal.orgId
+      );
+
+      jdbi.useExtension(UserDAO.class, dao-> dao.update(updated));
+      return Response.ok("Password changed successfully").build();
+    }
+    throw new WebApplicationException("Current Password is incorrect!", Response.Status.UNAUTHORIZED);
+  }
+
 }
