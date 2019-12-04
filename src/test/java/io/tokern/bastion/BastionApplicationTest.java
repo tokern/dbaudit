@@ -15,10 +15,15 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.stream.Stream;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +35,12 @@ class BastionApplicationTest {
 
   static Flyway flyway;
 
-  static String validToken;
+  static String adminToken;
+  static String dbAdminToken;
+  static String userToken;
+
+  static User loggedInAdmin;
+  static User loggedInDbAdmin;
   static User loggedInUser;
 
   @BeforeAll
@@ -48,13 +58,33 @@ class BastionApplicationTest {
     jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
         "tokern_root", "root@tokern.io",
         PasswordDigest.generateFromPassword("passw0rd").getDigest(),
+        User.SystemRoles.ADMIN,
         orgId.intValue()
     )));
 
-    loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("root@tokern.io"));
-    JwtTokenManager tokenManager = new JwtTokenManager(EXTENSION.getConfiguration().getJwtConfiguration());
+    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
+        "tokern_db", "db@tokern.io",
+        PasswordDigest.generateFromPassword("passw0rd").getDigest(),
+        User.SystemRoles.DBADMIN,
+        orgId.intValue()
+    )));
 
-    validToken = tokenManager.generateToken(loggedInUser);
+    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
+        "tokern_user", "user@tokern.io",
+        PasswordDigest.generateFromPassword("passw0rd").getDigest(),
+        User.SystemRoles.USER,
+        orgId.intValue()
+    )));
+
+    loggedInAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("root@tokern.io"));
+    loggedInDbAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("db@tokern.io"));
+    loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
+
+    JwtTokenManager tokenManager = new JwtTokenManager(EXTENSION.getConfiguration().getJwtConfiguration().getJwtSecret());
+
+    adminToken = tokenManager.generateToken(loggedInAdmin);
+    dbAdminToken = tokenManager.generateToken(loggedInDbAdmin);
+    userToken = tokenManager.generateToken(loggedInUser);
   }
 
   @AfterAll
@@ -105,7 +135,7 @@ class BastionApplicationTest {
   void protectedResourceTest() {
     final Response response =
         EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/" + loggedInUser.id)
-        .request().header("Authorization", "BEARER " + validToken).get();
+        .request().header("Authorization", "BEARER " + adminToken).get();
 
     assertEquals(200, response.getStatus());
 
@@ -115,5 +145,37 @@ class BastionApplicationTest {
     assertEquals(loggedInUser.email, user.email);
     assertEquals(loggedInUser.name, user.name);
     assertNull(user.passwordHash);
+  }
+
+  @Test
+  void disallowRole() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/" + loggedInUser.id)
+            .request().header("Authorization", "BEARER " + userToken).get();
+
+    assertEquals(403, response.getStatus());
+  }
+
+  private static Stream<Arguments> provideUsersAndTokens() {
+    return Stream.of(
+      Arguments.of(loggedInUser, userToken),
+        Arguments.of(loggedInAdmin, adminToken),
+        Arguments.of(loggedInDbAdmin, dbAdminToken)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void mePermitAll(User caller, String token) {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/me")
+        .request().header("Authorization", "BEARER " + token).get();
+
+    assertEquals(200, response.getStatus());
+    User user = response.readEntity(User.class);
+    assertEquals(caller.id, user.id);
+    assertEquals(caller.orgId, user.orgId);
+    assertEquals(caller.email, user.email);
+    assertEquals(caller.name, user.name);
   }
 }

@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import static io.tokern.bastion.api.User.SystemRoles.USER;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserDAOTest {
@@ -76,7 +77,7 @@ public class UserDAOTest {
         user.name,
         "admin2@tokern",
         user.passwordHash,
-        user.apiKey,
+        user.systemRole.name(),
         user.orgId);
 
     userDAO.update(updated);
@@ -97,7 +98,7 @@ public class UserDAOTest {
   @Test
   public void createUser() {
     Long id = userDAO.insert(new User("tokern_sysops", "sysops@tokern",
-        "SYSYSY".getBytes(StandardCharsets.UTF_8), "APISYS", 1));
+        "SYSYSY".getBytes(StandardCharsets.UTF_8), USER, 1));
 
     List<Map<String,Object>> rows = handle.select("select * from users where id=?", id)
         .mapToMap().list();
@@ -109,7 +110,7 @@ public class UserDAOTest {
     assertEquals("tokern_sysops", row.get("name"));
     assertEquals("sysops@tokern", row.get("email"));
     assertNotNull(row.get("password_hash"));
-    assertEquals("APISYS", row.get("api_key"));
+    assertEquals("USER", row.get("system_role"));
     assertEquals(1, row.get("org_id"));
   }
 }

@@ -9,6 +9,7 @@ import io.tokern.bastion.db.UserDAO;
 import org.jdbi.v3.core.Jdbi;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -26,6 +27,13 @@ public class UserResource {
   }
 
   @PermitAll
+  @GET
+  @Path("/me")
+  public User getUser(@Auth final User principal) {
+    return principal;
+  }
+
+  @RolesAllowed("ADMIN")
   @GET
   @Path("/{userId}")
   public User getUser(@Auth final User principal,
