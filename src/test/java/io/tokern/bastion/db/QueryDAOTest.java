@@ -1,6 +1,6 @@
 package io.tokern.bastion.db;
 
-import io.tokern.bastion.api.User;
+import io.tokern.bastion.api.Query;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
@@ -10,17 +10,15 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static io.tokern.bastion.api.User.SystemRoles.USER;
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserDAOTest {
+class QueryDAOTest {
   private static Jdbi jdbi;
   private static Handle handle;
-  private static UserDAO userDAO;
+  private static QueryDAO queryDAO;
   private static Flyway flyway;
 
   private static String url = "jdbc:postgresql://localhost/bastiondb";
@@ -42,10 +40,9 @@ class UserDAOTest {
     jdbi = Jdbi.create(url + "?currentSchema=" + schema, user, password);
     jdbi.installPlugin(new SqlObjectPlugin());
     handle = jdbi.open();
-    handle.registerRowMapper(ConstructorMapper.factory(User.class));
+    handle.registerRowMapper(ConstructorMapper.factory(Query.class));
 
-    userDAO = handle.attach(UserDAO.class);
-
+    queryDAO = handle.attach(QueryDAO.class);
  }
 
   @AfterAll
@@ -58,56 +55,51 @@ class UserDAOTest {
 
   @Test
   void selectAll() {
-    List<User> userList = userDAO.listByOrg(1);
+    List<Query> userList = queryDAO.listByOrg(1);
     assertEquals(2, userList.size());
   }
 
   @Test
-  void selectById() {
-    User user = userDAO.getById(1, 1);
-    assertEquals("tokern_admin", user.name);
+  void selectByUser() {
+    List<Query> userList = queryDAO.listByUser(3, 1);
+    assertEquals(1, userList.size());
   }
 
   @Test
-  void update() {
-    User user = userDAO.getById(1, 1);
-    assertEquals("admin@tokern", user.email);
+  void selectById() {
+    Query query = queryDAO.getById(1, 1);
+    assertEquals("select 1", query.sql);
+  }
 
-    User updated = new User(user.id,
-        user.name,
-        "admin2@tokern",
-        user.passwordHash,
-        user.systemRole.name(),
-        user.orgId);
+  @Test
+  void updateState() {
+    assertEquals(Query.State.RUNNING, queryDAO.getById(1, 1).state);
 
-    userDAO.update(updated);
+    queryDAO.updateState(1, 1, Query.State.ERROR);
 
-    User userNew = userDAO.getById(1,1);
-    assertEquals("admin2@tokern", userNew.email);
+    assertEquals(Query.State.ERROR, queryDAO.getById(1, 1).state);
   }
 
   @Test
   void delete() {
-    userDAO.deleteById(4, 2);
-    assertNull(userDAO.getById(4, 2));
+    queryDAO.deleteById(3, 2);
+    assertNull(queryDAO.getById(3, 2));
   }
 
   @Test
-  void createUser() {
-    Long id = userDAO.insert(new User("tokern_sysops", "sysops@tokern",
-        "SYSYSY".getBytes(StandardCharsets.UTF_8), USER, 1));
+  void create() {
+    Long id = queryDAO.insert(new Query("select 4", 2, 1, 1, "WAITING"));
 
-    List<Map<String,Object>> rows = handle.select("select * from users where id=?", id)
+    List<Map<String,Object>> rows = handle.select("select * from queries where id=?", id)
         .mapToMap().list();
-
     assertFalse(rows.isEmpty());
 
     Map<String, Object> row = rows.get(0);
     assertEquals(id.intValue(), row.get("id"));
-    assertEquals("tokern_sysops", row.get("name"));
-    assertEquals("sysops@tokern", row.get("email"));
-    assertNotNull(row.get("password_hash"));
-    assertEquals("USER", row.get("system_role"));
+    assertEquals("select 4", row.get("sql"));
+    assertEquals(2, row.get("user_id"));
+    assertEquals(1, row.get("db_id"));
     assertEquals(1, row.get("org_id"));
+    assertEquals("WAITING", row.get("state"));
   }
 }

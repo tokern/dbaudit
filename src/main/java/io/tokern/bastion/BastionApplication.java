@@ -17,10 +17,7 @@ import io.tokern.bastion.core.auth.JwtAuthenticator;
 import io.tokern.bastion.core.auth.JwtAuthFilter;
 import io.tokern.bastion.core.auth.JwtAuthorizer;
 import io.tokern.bastion.core.auth.JwtTokenManager;
-import io.tokern.bastion.resources.DatabaseResource;
-import io.tokern.bastion.resources.RegisterResource;
-import io.tokern.bastion.resources.UserResource;
-import io.tokern.bastion.resources.Version;
+import io.tokern.bastion.resources.*;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 
@@ -76,6 +73,7 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
       environment.jersey().register(new DatabaseResource(jdbi));
+      environment.jersey().register(new QueryResource(jdbi));
 
       environment.jersey().register(new AuthDynamicFeature(authFilter));
       environment.jersey().register(RolesAllowedDynamicFeature.class);
