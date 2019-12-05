@@ -8,6 +8,7 @@ import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.auth.PasswordDigest;
 import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.OrganizationDAO;
+import io.tokern.bastion.db.QueryDAO;
 import io.tokern.bastion.db.UserDAO;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
@@ -22,7 +23,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.crypto.Data;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -115,6 +115,22 @@ class BastionApplicationTest {
         "bastion_password",
         "mysql",
         orgId.intValue()
+    )));
+
+    //Insert a few queries
+    jdbi.useExtension(QueryDAO.class, dao -> dao.insert(new Query(
+        "select 1",
+        loggedInUser.id,
+        1,
+        loggedInUser.orgId,
+        "WAITING"
+    )));
+    jdbi.useExtension(QueryDAO.class, dao -> dao.insert(new Query(
+        "select 2",
+        loggedInDbAdmin.id,
+        1,
+        loggedInDbAdmin.orgId,
+        "WAITING"
     )));
   }
 
@@ -343,4 +359,29 @@ class BastionApplicationTest {
 
     assertEquals("tokern", updated.userName);
   }
+
+  @Test
+  void listQueries() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/")
+            .request().header("Authorization", "BEARER " + userToken).get();
+
+    assertEquals(200, response.getStatus());
+    List<Query> queries = response.readEntity(new GenericType<List<Query>>() {});
+
+    assertEquals(1, queries.size());
+  }
+
+  @Test
+  void getQuery() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/1")
+            .request().header("Authorization", "BEARER " + userToken).get();
+
+    assertEquals(200, response.getStatus());
+    Query query = response.readEntity(Query.class);
+
+    assertEquals("select 1", query.sql);
+  }
+
 }

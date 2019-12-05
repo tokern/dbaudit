@@ -57,7 +57,7 @@ public class DatabaseDAOTest {
   @Test
   public void selectAll() {
     List<Database> databaseList = databaseDAO.listByOrgId(1);
-    assertEquals(3, databaseList.size());
+    assertEquals(2, databaseList.size());
   }
 
   @Test
