@@ -45,4 +45,8 @@ public class Query {
                @JsonProperty("state") String state) {
     this(0, sql, userId, dbId, orgId, State.valueOf(state));
   }
+
+  public Query(String sql, long userId, long dbId, long orgId) {
+    this(0, sql, userId, dbId, orgId, State.RUNNING);
+  }
 }

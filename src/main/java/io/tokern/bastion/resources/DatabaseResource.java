@@ -69,7 +69,7 @@ public class DatabaseResource {
           request.getJdbcUrl() != null ? request.getJdbcUrl() : inDb.jdbcUrl,
           request.getUserName() != null ? request.getUserName() : inDb.userName,
           request.getPassword() != null ? request.getPassword() : inDb.password,
-          request.getType() != null ? request.getType() : inDb.type,
+          request.getType() != null ? Database.Types.valueOf(request.getType()) : inDb.type,
           inDb.orgId
       );
       jdbi.useExtension(DatabaseDAO.class, dao -> dao.update(updated));

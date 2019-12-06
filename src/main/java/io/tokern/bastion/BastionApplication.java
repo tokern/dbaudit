@@ -9,6 +9,7 @@ import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.tokern.bastion.api.Database;
 import io.tokern.bastion.api.GitState;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
@@ -17,12 +18,18 @@ import io.tokern.bastion.core.auth.JwtAuthenticator;
 import io.tokern.bastion.core.auth.JwtAuthFilter;
 import io.tokern.bastion.core.auth.JwtAuthorizer;
 import io.tokern.bastion.core.auth.JwtTokenManager;
+import io.tokern.bastion.core.executor.Connections;
+import io.tokern.bastion.core.executor.ThreadPool;
+import io.tokern.bastion.db.DatabaseDAO;
+import io.tokern.bastion.db.QueryDAO;
 import io.tokern.bastion.resources.*;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.List;
 
 public class BastionApplication extends Application<BastionConfiguration> {
 
@@ -51,14 +58,34 @@ public class BastionApplication extends Application<BastionConfiguration> {
       });
     }
 
+    private void addDatabases(Jdbi jdbi, Connections connections) {
+      List<Database> databases = jdbi.withExtension(DatabaseDAO.class, DatabaseDAO::listAll);
+      databases.forEach(database -> {
+        try {
+          connections.addDatabase(database);
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+
     @Override
     public void run(final BastionConfiguration configuration,
                     final Environment environment) throws IOException {
       InputStream stream =  getClass().getClassLoader().getResourceAsStream("git.properties");
       GitState gitState = new ObjectMapper().readValue(stream, GitState.class);
 
+      System.setProperty("p6spy.config.appender", "com.p6spy.engine.spy.appender.Slf4JLogger");
+
       final JdbiFactory factory = new JdbiFactory();
       final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
+
+      final Connections connections = new Connections(environment.healthChecks(), environment.metrics());
+      environment.lifecycle().manage(connections);
+      this.addDatabases(jdbi, connections);
+
+      final ThreadPool threadPool = new ThreadPool();
+      environment.lifecycle().manage(threadPool);
 
       environment.jersey().register(new Version(gitState));
       environment.jersey().register(new RegisterResource(jdbi));
@@ -73,7 +100,8 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
       environment.jersey().register(new DatabaseResource(jdbi));
-      environment.jersey().register(new QueryResource(jdbi));
+
+      environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class), connections, threadPool));
 
       environment.jersey().register(new AuthDynamicFeature(authFilter));
       environment.jersey().register(RolesAllowedDynamicFeature.class);

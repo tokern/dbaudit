@@ -28,11 +28,16 @@
         <dropwizard-jdbi3.version>1.2.1</dropwizard-jdbi3.version>
         <frontend-maven-plugin.version>1.7.6</frontend-maven-plugin.version>
         <flyway.version>6.1.0</flyway.version>
+        <h2.version>1.4.194</h2.version>
+        <hikari.version>3.4.1</hikari.version>
         <jdbi.version>3.11.1</jdbi.version>
         <junit.version>5.5.2</junit.version>
         <jwt.version>3.8.3</jwt.version>
         <jacoco.version>0.8.5</jacoco.version>
+        <mariadb.version>2.5.2</mariadb.version>
         <mockito.version>3.2.0</mockito.version>
+        <mysql.version>8.0.18</mysql.version>
+        <p6spy.version>3.8.6</p6spy.version>
         <postgres.version>42.2.8</postgres.version>
         <xmlbind.version>2.3.2</xmlbind.version>
     </properties>
@@ -105,6 +110,26 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>${p6spy.version}</version>
+        </dependency>
 
         <!-- https://stackoverflow.com/a/43574427 -->
         <dependency>
@@ -161,6 +186,11 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
         </dependency>
     </dependencies>
 

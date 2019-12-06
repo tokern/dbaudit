@@ -5,21 +5,21 @@ insert into dbs(jdbc_url, user_name, password, type, org_id) values (
                                                              'jdbc://localhost/bastion_1',
                                                              'user',
                                                              'password',
-                                                             'mysql',
+                                                             'MYSQL',
                                                              1
                                                             );
 insert into dbs(jdbc_url, user_name, password, type, org_id) values (
                                                                 'jdbc://localhost/bastion_2',
                                                                 'user',
                                                                 'password',
-                                                                'mysql',
+                                                                'MYSQL',
                                                                      2
                                                             );
 insert into dbs(jdbc_url, user_name, password, type, org_id) values (
                                                                 'jdbc://localhost/bastion_3',
                                                                 'user',
                                                                 'password',
-                                                                'mysql',
+                                                                'MYSQL',
                                                                      1
                                                             );
 
