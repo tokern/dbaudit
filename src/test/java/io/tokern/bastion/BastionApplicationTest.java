@@ -5,12 +5,8 @@ import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.tokern.bastion.api.*;
 import io.tokern.bastion.core.auth.JwtTokenManager;
-import io.tokern.bastion.core.auth.PasswordDigest;
 import io.tokern.bastion.db.DatabaseDAO;
-import io.tokern.bastion.db.OrganizationDAO;
-import io.tokern.bastion.db.QueryDAO;
 import io.tokern.bastion.db.UserDAO;
-import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.junit.jupiter.api.*;
@@ -18,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
@@ -33,10 +31,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
 class BastionApplicationTest {
-  public static final DropwizardAppExtension<BastionConfiguration> EXTENSION =
-      new DropwizardAppExtension<>(BastionApplication.class, resourceFilePath("test-config.yaml"));
+  private static Logger logger = LoggerFactory.getLogger(BastionApplicationTest.class);
 
-  static Flyway flyway;
+  static final DropwizardAppExtension<BastionConfiguration> EXTENSION =
+      new DropwizardAppExtension<>(BastionApplication.class, resourceFilePath("test-config.yaml"))
+      .addListener(new ApplicationDatabaseSetup());
+
   static Jdbi jdbi;
 
   static String adminToken;
@@ -53,41 +53,11 @@ class BastionApplicationTest {
   static void setupDatabase() throws ClassNotFoundException {
     ManagedDataSource dataSource = EXTENSION.getConfiguration().getDataSourceFactory()
         .build(EXTENSION.getEnvironment().metrics(), "flyway");
-    flyway = EXTENSION.getConfiguration().getFlywayFactory().build(dataSource);
-    flyway.migrate();
 
     Class.forName("org.postgresql.Driver");
 
     jdbi = Jdbi.create(dataSource);
     jdbi.installPlugin(new SqlObjectPlugin());
-    Long orgId = jdbi.withExtension(OrganizationDAO.class, dao -> dao.insert(new Organization("Tokern", "http://tokern.io")));
-    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
-        "tokern_root", "root@tokern.io",
-        PasswordDigest.generateFromPassword("passw0rd").getDigest(),
-        User.SystemRoles.ADMIN,
-        orgId.intValue()
-    )));
-
-    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
-        "tokern_db", "db@tokern.io",
-        PasswordDigest.generateFromPassword("passw0rd").getDigest(),
-        User.SystemRoles.DBADMIN,
-        orgId.intValue()
-    )));
-
-    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
-        "tokern_user", "user@tokern.io",
-        PasswordDigest.generateFromPassword("passw0rd").getDigest(),
-        User.SystemRoles.USER,
-        orgId.intValue()
-    )));
-
-    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
-        "tokern_put", "put@tokern.io",
-        PasswordDigest.generateFromPassword("putw0rd").getDigest(),
-        User.SystemRoles.USER,
-        orgId.intValue()
-    )));
 
     loggedInAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("root@tokern.io"));
     loggedInDbAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("db@tokern.io"));
@@ -99,44 +69,6 @@ class BastionApplicationTest {
     adminToken = tokenManager.generateToken(loggedInAdmin);
     dbAdminToken = tokenManager.generateToken(loggedInDbAdmin);
     userToken = tokenManager.generateToken(loggedInUser);
-
-    // Insert a few databases
-    jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
-        "jdbc://localhost/bastion1",
-        "bastion_user",
-        "bastion_password",
-        "postgresql",
-        orgId.intValue()
-    )));
-
-    jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
-        "jdbc://localhost/bastion2",
-        "bastion_user",
-        "bastion_password",
-        "mysql",
-        orgId.intValue()
-    )));
-
-    //Insert a few queries
-    jdbi.useExtension(QueryDAO.class, dao -> dao.insert(new Query(
-        "select 1",
-        loggedInUser.id,
-        1,
-        loggedInUser.orgId,
-        "WAITING"
-    )));
-    jdbi.useExtension(QueryDAO.class, dao -> dao.insert(new Query(
-        "select 2",
-        loggedInDbAdmin.id,
-        1,
-        loggedInDbAdmin.orgId,
-        "WAITING"
-    )));
-  }
-
-  @AfterAll
-  static void tearDownDatabase() {
-    flyway.clean();
   }
 
   @Test
@@ -314,13 +246,13 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     Database database = response.readEntity(Database.class);
 
-    assertEquals("jdbc://localhost/bastion1", database.jdbcUrl);
+    assertEquals("jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app", database.jdbcUrl);
   }
 
   @ParameterizedTest
   @MethodSource("provideAdminAndDbAdmin")
   void createDatabase(User user, String token) {
-    Database database = new Database("jdbc://localhost/bastion3", "user", "password", "mysql", user.orgId);
+    Database database = new Database("jdbc://localhost/bastion3", "user", "password", "MYSQL", user.orgId);
     Entity<?> entity = Entity.entity(database, MediaType.APPLICATION_JSON);
 
     final Response response =
@@ -364,12 +296,13 @@ class BastionApplicationTest {
   void listQueries() {
     final Response response =
         EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/")
-            .request().header("Authorization", "BEARER " + userToken).get();
+            .request().header("Authorization", "BEARER " + dbAdminToken).get();
 
     assertEquals(200, response.getStatus());
     List<Query> queries = response.readEntity(new GenericType<List<Query>>() {});
 
-    assertEquals(1, queries.size());
+    // 1 extra because of runQuery
+    assertEquals(2, queries.size());
   }
 
   @Test
@@ -384,4 +317,20 @@ class BastionApplicationTest {
     assertEquals("select 1", query.sql);
   }
 
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void runQuery(User user, String token) {
+    Query query = new Query("SELECT 1", user.id, 1, user.orgId);
+    Entity<?> entity = Entity.entity(query, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/")
+            .request().header("Authorization", "BEARER " + token).post(entity);
+
+    assertEquals(200, response.getStatus());
+    Query created = response.readEntity(Query.class);
+
+    assertTrue(created.id > 0);
+    assertEquals(Query.State.RUNNING, created.state);
+  }
 }

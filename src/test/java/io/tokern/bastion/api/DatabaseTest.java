@@ -13,12 +13,12 @@ class DatabaseTest {
   private String jsonBody = "\"jdbcUrl\":\"jdbc://localhost/bastion\"," +
           "\"userName\":\"user\"," +
           "\"password\":\"password\"," +
-          "\"type\":\"mysql\"," +
+          "\"type\":\"MYSQL\"," +
           "\"orgId\":1";
 
   @Test
   void serializeToJson() throws Exception {
-    final Database database = new Database("jdbc://localhost/bastion", "user", "password", "mysql", 1);
+    final Database database = new Database("jdbc://localhost/bastion", "user", "password", "MYSQL", 1);
     String serialized = objectMapper.writeValueAsString(database);
 
     String expected = "{\"id\":0," + jsonBody + "}";
@@ -35,6 +35,6 @@ class DatabaseTest {
     assertEquals("jdbc://localhost/bastion", database.jdbcUrl);
     assertEquals("user", database.userName);
     assertEquals("password", database.password);
-    assertEquals("mysql", database.type);
+    assertEquals(Database.Types.MYSQL, database.type);
   }
 }

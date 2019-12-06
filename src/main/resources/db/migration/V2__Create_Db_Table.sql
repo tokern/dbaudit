@@ -1,8 +1,10 @@
+CREATE TYPE db_type as ENUM ('POSTGRESQL', 'MYSQL', 'MARIADB', 'H2');
+
 CREATE TABLE dbs (
     id serial PRIMARY KEY,
     jdbc_url varchar(255),
     user_name varchar(255),
     password varchar(255),
-    type varchar(255),
-    org_id int references organizations(id)
+    type db_type,
+    org_id int not null references organizations(id)
 )
