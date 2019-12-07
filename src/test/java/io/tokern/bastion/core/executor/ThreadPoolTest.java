@@ -53,6 +53,4 @@ class ThreadPoolTest {
     verify(queryDAO, times(1)).updateState(1, 1, Query.State.RUNNING);
     verify(queryDAO, times(1)).updateState(1, 1, Query.State.SUCCESS);
   }
-
-
 }

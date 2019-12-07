@@ -2,6 +2,8 @@ package io.tokern.bastion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.arteam.jdbi3.JdbiFactory;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.auth.AuthDynamicFeature;
@@ -19,6 +21,7 @@ import io.tokern.bastion.core.auth.JwtAuthFilter;
 import io.tokern.bastion.core.auth.JwtAuthorizer;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.executor.Connections;
+import io.tokern.bastion.core.executor.RowSetModule;
 import io.tokern.bastion.core.executor.ThreadPool;
 import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.QueryDAO;
@@ -30,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.Future;
 
 public class BastionApplication extends Application<BastionConfiguration> {
 
@@ -56,6 +60,7 @@ public class BastionApplication extends Application<BastionConfiguration> {
           return configuration.getFlywayFactory();
         }
       });
+      bootstrap.getObjectMapper().registerModules(new RowSetModule());
     }
 
     private void addDatabases(Jdbi jdbi, Connections connections) {
@@ -97,11 +102,16 @@ public class BastionApplication extends Application<BastionConfiguration> {
           .setAuthenticator(new JwtAuthenticator(configuration.getJwtConfiguration().getJwtSecret(), jdbi))
           .setAuthorizer(new JwtAuthorizer())
           .buildAuthFilter();
+      final Cache<Long, Future< ThreadPool.Result>> resultCache = CacheBuilder.newBuilder()
+          .maximumSize(1000)
+          .concurrencyLevel(5)
+          .build();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
       environment.jersey().register(new DatabaseResource(jdbi));
 
-      environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class), connections, threadPool));
+      environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class),
+          connections, threadPool, resultCache));
 
       environment.jersey().register(new AuthDynamicFeature(authFilter));
       environment.jersey().register(RolesAllowedDynamicFeature.class);
