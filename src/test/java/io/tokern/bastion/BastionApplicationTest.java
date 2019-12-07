@@ -319,8 +319,8 @@ class BastionApplicationTest {
 
   @ParameterizedTest
   @MethodSource("provideUsersAndTokens")
-  void runQuery(User user, String token) {
-    Query query = new Query("SELECT 1", user.id, 1, user.orgId);
+  void runQuery(User user, String token) throws InterruptedException {
+    Query query = new Query("SELECT 1 as ONE", user.id, 1, user.orgId);
     Entity<?> entity = Entity.entity(query, MediaType.APPLICATION_JSON);
 
     final Response response =
@@ -332,5 +332,30 @@ class BastionApplicationTest {
 
     assertTrue(created.id > 0);
     assertEquals(Query.State.RUNNING, created.state);
+
+    while (created.state == Query.State.RUNNING || created.state == Query.State.WAITING) {
+      Thread.sleep(500);
+      final Response checkStatus =
+          EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() +
+              "/api/queries/" + created.id)
+              .request().header("Authorization", "BEARER " + token).get();
+
+      assertEquals(200, checkStatus.getStatus());
+      created = checkStatus.readEntity(Query.class);
+    }
+
+    assertEquals(Query.State.SUCCESS, created.state);
+
+    //Get query result
+    final Response queryResult =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() +
+            "/api/queries/" + created.id + "/results")
+            .request().header("Authorization", "BEARER " + token).get();
+
+
+    assertEquals(200, queryResult.getStatus());
+    String rowSet = queryResult.readEntity(String.class);
+
+    assertEquals("[{\"one\":1}]", rowSet);
   }
 }
