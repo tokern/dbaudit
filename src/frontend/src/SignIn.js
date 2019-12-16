@@ -6,26 +6,27 @@ import Button from './common/Button';
 import Input from './common/Input';
 import message from './common/message';
 import Spacer from './common/Spacer';
-import { refreshAppContext } from './stores/config';
 import fetchJson from './utilities/fetch-json.js';
+import {setUserToken} from "./stores/user";
 
-function SignIn({ config, refreshAppContext }) {
+function SignIn({ config, setUserToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [redirect, setRedirect] = useState(false);
 
+
   useEffect(() => {
-    document.title = 'SQLPad - Sign In';
+    document.title = 'Tokern Bastion - Sign In';
   }, []);
 
   const signIn = async e => {
     e.preventDefault();
 
-    const json = await fetchJson('POST', '/api/signin', { email, password });
+    const json = await fetchJson('POST', '/api/users/login', { email, password });
     if (json.error) {
       return message.error('Username or password incorrect');
     }
-    await refreshAppContext();
+    setUserToken(json);
     setRedirect(true);
   };
 
@@ -101,7 +102,7 @@ function SignIn({ config, refreshAppContext }) {
 
   return (
     <div style={{ width: '300px', textAlign: 'center', margin: '100px auto' }}>
-      <h1>SQLPad</h1>
+      <h1>Tokern Bastion</h1>
       {config.localAuthConfigured && localForm}
       {config.googleAuthConfigured && googleForm}
       {config.samlConfigured && samlForm}
@@ -111,5 +112,7 @@ function SignIn({ config, refreshAppContext }) {
 
 export default connect(
   ['config'],
-  { refreshAppContext }
+  store => ({
+    setUserToken
+  })
 )(SignIn);

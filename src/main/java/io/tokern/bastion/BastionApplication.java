@@ -93,7 +93,7 @@ public class BastionApplication extends Application<BastionConfiguration> {
       environment.lifecycle().manage(threadPool);
 
       environment.jersey().register(new Version(gitState));
-      environment.jersey().register(new RegisterResource(jdbi));
+      environment.jersey().register(new BootstrapResource(jdbi, configuration.getFeConfiguration(), gitState));
 
       final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration().getJwtSecret());
       final JwtAuthFilter authFilter = new JwtAuthFilter.Builder()

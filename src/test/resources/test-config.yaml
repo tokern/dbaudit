@@ -21,3 +21,6 @@ database:
 flyway:
   schemas:
     - bastion_app
+
+fe:
+  baseUrl: http://localhost:3000

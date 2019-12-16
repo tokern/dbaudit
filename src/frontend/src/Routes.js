@@ -14,6 +14,7 @@ import PasswordResetRequested from './PasswordResetRequested.js';
 import QueryChartOnly from './QueryChartOnly.js';
 import QueryEditor from './queryEditor/QueryEditor.js';
 import QueryTableOnly from './QueryTableOnly.js';
+import Register from './Register.js';
 import SignIn from './SignIn.js';
 import SignUp from './SignUp.js';
 import { refreshAppContext } from './stores/config';
@@ -70,6 +71,7 @@ function Routes({
         />
         <Route exact path="/signin" render={() => <SignIn />} />
         <Route exact path="/signup" render={() => <SignUp />} />
+        <Route exact path="/register" render={() => <Register />} />
         <Route
           exact
           path="/forgot-password"

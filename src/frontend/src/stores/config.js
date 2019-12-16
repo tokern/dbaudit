@@ -3,10 +3,9 @@ import fetchJson from '../utilities/fetch-json.js';
 export const refreshAppContext = async () => {
   const {
     config,
-    currentUser,
     adminRegistrationOpen,
     version
-  } = await fetchJson('GET', 'api/app');
+  } = await fetchJson('GET', 'api/bootstrap');
   if (!config) {
     return;
   }
@@ -17,7 +16,6 @@ export const refreshAppContext = async () => {
 
   return {
     config,
-    currentUser,
     adminRegistrationOpen,
     version
   };
