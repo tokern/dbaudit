@@ -84,7 +84,7 @@ export const loadConnections = store => async (state, force) => {
     };
 
     if (connections && connections.length === 1) {
-      update.selectedConnectionId = connections[0]._id;
+      update.selectedConnectionId = connections[0].id;
     }
 
     store.setState(update);

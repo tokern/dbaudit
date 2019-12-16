@@ -62,8 +62,8 @@ public class DatabaseResource {
   @POST
   public Database createDatabase(@Auth User principal, @Valid @NotNull Database database) {
     Database updated = new Database(
-        database.id, database.name, database.jdbcUrl,
-        database.userName, database.password, database.type, principal.orgId);
+        database.getId(), database.getName(), database.getJdbcUrl(),
+        database.getUserName(), database.getPassword(), database.getDriverType(), principal.orgId);
 
     Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
     return jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(id, principal.orgId));
@@ -77,13 +77,13 @@ public class DatabaseResource {
     Database inDb = jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(databaseId, principal.orgId));
     if (inDb != null) {
       Database updated = new Database(
-          inDb.id,
-          request.getName() != null ? request.getName() : inDb.name,
-          request.getJdbcUrl() != null ? request.getJdbcUrl() : inDb.jdbcUrl,
-          request.getUserName() != null ? request.getUserName() : inDb.userName,
-          request.getPassword() != null ? request.getPassword() : inDb.password,
-          request.getType() != null ? Database.Driver.valueOf(request.getType()) : inDb.type,
-          inDb.orgId
+          inDb.getId(),
+          request.getName() != null ? request.getName() : inDb.getName(),
+          request.getJdbcUrl() != null ? request.getJdbcUrl() : inDb.getJdbcUrl(),
+          request.getUserName() != null ? request.getUserName() : inDb.getJdbcUrl(),
+          request.getPassword() != null ? request.getPassword() : inDb.getPassword(),
+          request.getType() != null ? Database.Driver.valueOf(request.getType()) : inDb.getDriverType(),
+          inDb.getOrgId()
       );
       jdbi.useExtension(DatabaseDAO.class, dao -> dao.update(updated));
       return Response.ok(updated).build();

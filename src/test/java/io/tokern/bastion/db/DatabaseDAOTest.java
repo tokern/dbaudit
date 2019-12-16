@@ -63,9 +63,9 @@ public class DatabaseDAOTest {
   @Test
   public void selectByIdurl() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
-    assertEquals("jdbc://localhost/bastion_1", database.jdbcUrl);
+    assertEquals("jdbc://localhost/bastion_1", database.getJdbcUrl());
 
-    Database byId = databaseDAO.getById(database.id, 1);
+    Database byId = databaseDAO.getById(database.getId(), 1);
     assertNotNull(byId);
   }
 
@@ -73,27 +73,27 @@ public class DatabaseDAOTest {
   public void update() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
 
-    Database updated = new Database(database.id,
-        database.name,
-        database.jdbcUrl,
+    Database updated = new Database(database.getId(),
+        database.getName(),
+        database.getJdbcUrl(),
         "userNew",
-        database.password,
-        database.type,
-        database.orgId);
+        database.getPassword(),
+        database.getDriver(),
+        database.getOrgId());
 
     databaseDAO.update(updated);
 
-    Database databaseNew = databaseDAO.getById(database.id, 1);
-    assertEquals("userNew", databaseNew.userName);
+    Database databaseNew = databaseDAO.getById(database.getId(), 1);
+    assertEquals("userNew", databaseNew.getUserName());
   }
 
   @Test
   public void delete() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_3", 1);
 
-    databaseDAO.deleteById(database.id, 1);
+    databaseDAO.deleteById(database.getId(), 1);
 
-    Database databaseNew = databaseDAO.getById(database.id, 1);
+    Database databaseNew = databaseDAO.getById(database.getId(), 1);
     assertNull(databaseNew);
   }
 

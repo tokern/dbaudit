@@ -14,7 +14,7 @@ class DatabaseTest {
       "\"jdbcUrl\":\"jdbc://localhost/bastion\"," +
       "\"userName\":\"user\"," +
       "\"password\":\"password\"," +
-      "\"type\":\"MYSQL\"," +
+      "\"driver\":\"MYSQL\"," +
       "\"orgId\":1";
 
   @Test
@@ -37,7 +37,7 @@ class DatabaseTest {
     assertEquals("jdbc://localhost/bastion", database.jdbcUrl);
     assertEquals("user", database.userName);
     assertEquals("password", database.password);
-    assertEquals(Database.Driver.MYSQL, database.type);
+    assertEquals(Database.Driver.MYSQL, database.driver);
   }
 
   @Test

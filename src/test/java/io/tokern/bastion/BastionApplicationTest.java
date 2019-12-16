@@ -246,7 +246,7 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     Database database = response.readEntity(Database.class);
 
-    assertEquals("jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app", database.jdbcUrl);
+    assertEquals("jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app", database.getJdbcUrl());
   }
 
   @ParameterizedTest
@@ -263,7 +263,7 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     Database created = response.readEntity(Database.class);
 
-    assertEquals("jdbc://localhost/bastion3", created.jdbcUrl);
+    assertEquals("jdbc://localhost/bastion3", created.getJdbcUrl());
   }
 
   @Test
@@ -290,7 +290,7 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     Database updated = response.readEntity(Database.class);
 
-    assertEquals("tokern", updated.userName);
+    assertEquals("tokern", updated.getUserName());
   }
 
   @Test

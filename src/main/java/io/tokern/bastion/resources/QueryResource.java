@@ -2,10 +2,12 @@ package io.tokern.bastion.resources;
 
 import com.google.common.cache.Cache;
 import io.dropwizard.auth.Auth;
+import io.tokern.bastion.api.Database;
 import io.tokern.bastion.api.Query;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.executor.Connections;
 import io.tokern.bastion.core.executor.ThreadPool;
+import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.QueryDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +29,15 @@ import java.util.concurrent.Future;
 public class QueryResource {
   private static final Logger logger = LoggerFactory.getLogger(QueryResource.class);
   private final QueryDAO queryDAO;
+  private final DatabaseDAO databaseDAO;
   private final Connections connections;
   private final ThreadPool threadPool;
   private final Cache<Long, Future<ThreadPool.Result>> resultCache;
 
-  public QueryResource(QueryDAO queryDAO, Connections connections, ThreadPool threadPool,
+  public QueryResource(QueryDAO queryDAO, DatabaseDAO databaseDAO, Connections connections, ThreadPool threadPool,
                        Cache<Long, Future<ThreadPool.Result>> resultCache) {
     this.queryDAO = queryDAO;
+    this.databaseDAO = databaseDAO;
     this.connections = connections;
     this.threadPool = threadPool;
     this.resultCache = resultCache;
@@ -85,14 +89,58 @@ public class QueryResource {
   }
 
   @POST
-  public Response createQuery(@Auth User principal, @Valid @NotNull Query query) {
+  public Response createQuery(@Auth User principal, @Valid @NotNull Query.RunQueryRequest request) {
     try {
+      Database database = databaseDAO.getById(request.dbId, principal.orgId);
+      if (database == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+      }
+      Query query = new Query(request.sql, principal.id, database.getId(), principal.orgId);
       Long id = queryDAO.insert(query);
       Query saved = queryDAO.getById(id, principal.orgId);
       Future<ThreadPool.Result> future = threadPool.getService().submit(
           new ThreadPool.Work(saved, queryDAO, connections.getDataSource(query.dbId).getConnection()));
       resultCache.put(id, future);
       return Response.ok(saved).build();
+    } catch (SQLException exception) {
+      return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
+          .entity(exception.getMessage()).build();
+    }
+  }
+
+  @POST
+  @Path("/run")
+  public Response runQuery(@Auth User principal, @Valid @NotNull Query.RunQueryRequest request) {
+    try {
+      Database database = databaseDAO.getById(request.dbId, principal.orgId);
+      if (database == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+      }
+      Query query = new Query(request.sql, principal.id, database.getId(), principal.orgId);
+      Long id = queryDAO.insert(query);
+      Query saved = queryDAO.getById(id, principal.orgId);
+      Future<ThreadPool.Result> future = threadPool.getService().submit(
+          new ThreadPool.Work(saved, queryDAO, connections.getDataSource(query.dbId).getConnection()));
+
+      ThreadPool.Result result = null;
+      try {
+        result = future.get();
+      } catch (InterruptedException | ExecutionException exception) {
+        logger.warn(String.format("Exception when getting result for %d", query.id), exception);
+      }
+
+      int responseCode = 0;
+      Object responseObject = null;
+
+      if (query.state == Query.State.ERROR) {
+        responseCode = 400;
+        responseObject = result != null ? result.throwable : "Query had an ERROR but results are not available";
+      } else {
+        responseCode = 200;
+        responseObject = result != null ? result.resultSet : "Query succeeded but results are not available";
+      }
+
+      return Response.status(responseCode).entity(responseObject).build();
     } catch (SQLException exception) {
       return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
           .entity(exception.getMessage()).build();

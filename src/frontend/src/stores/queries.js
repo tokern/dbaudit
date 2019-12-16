@@ -108,14 +108,12 @@ export const runQuery = store => async state => {
     runQueryStartTime: new Date()
   });
   const postData = {
-    connectionId: selectedConnectionId,
-    cacheKey,
-    queryName: query.name,
-    queryText: selectedText || query.queryText
+    dbId: selectedConnectionId,
+    sql: selectedText || query.queryText
   };
   const { queryResult, error } = await fetchJson(
     'POST',
-    '/api/query-result',
+    '/api/queries/run',
     postData,
     state.token
   );

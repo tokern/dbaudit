@@ -50,7 +50,7 @@ function ConnectionDropdown({
         <option value="">... choose connection</option>
         {connections.map(conn => {
           return (
-            <option key={conn._id} value={conn._id} name={conn.name}>
+            <option key={conn.id} value={conn.id} name={conn.name}>
               {conn.name}
             </option>
           );

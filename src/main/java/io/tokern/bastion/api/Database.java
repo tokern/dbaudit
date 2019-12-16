@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.SQLException;
 import java.util.List;
 
+@JsonPropertyOrder({"id", "name", "jdbcUrl", "userName", "password", "driver", "orgId"})
 public class Database {
   public enum FieldType {
     TEXT,
@@ -74,27 +75,27 @@ public class Database {
     }
   }
 
-  public final long id;
+  final long id;
   @NotNull
-  public final String name;
+  final String name;
   @NotNull
-  public final String jdbcUrl;
+  final String jdbcUrl;
   @NotNull
-  public final String userName;
+  final String userName;
   @NotNull
-  public final String password;
+  final String password;
   @NotNull
-  public final Driver type;
+  final Driver driver;
   @NotNull
-  public final int orgId;
+  final int orgId;
 
-  public Database(long id, String name, String jdbcUrl, String userName, String password, Driver type, int orgId) {
+  public Database(long id, String name, String jdbcUrl, String userName, String password, Driver driver, int orgId) {
     this.id = id;
     this.name = name;
     this.jdbcUrl = jdbcUrl;
     this.userName = userName;
     this.password = password;
-    this.type = type;
+    this.driver = driver;
     this.orgId = orgId;
   }
 
@@ -104,9 +105,9 @@ public class Database {
                   @ColumnName("jdbc_url") String jdbcUrl,
                   @ColumnName("user_name") String userName,
                   @ColumnName("password") String password,
-                  @ColumnName("type") String type,
+                  @ColumnName("driver") String driver,
                   @ColumnName("org_id") int orgId) {
-    this(id, name, jdbcUrl, userName, password, Driver.valueOf(type), orgId);
+    this(id, name, jdbcUrl, userName, password, Driver.valueOf(driver), orgId);
   }
 
 
@@ -115,35 +116,68 @@ public class Database {
                   @JsonProperty("jdbcUrl") String jdbcUrl,
                   @JsonProperty("userName") String userName,
                   @JsonProperty("password") String password,
-                  @JsonProperty("driver") String type) {
-    this(0, name, jdbcUrl, userName, password, Driver.valueOf(type), 0);
+                  @JsonProperty("driver") String driver) {
+    this(0, name, jdbcUrl, userName, password, Driver.valueOf(driver), 0);
   }
 
-  public Database(String name, String jdbcUrl, String userName, String password, String type, int orgId) {
-    this(0, name, jdbcUrl, userName, password, Driver.valueOf(type), orgId);
+  public Database(String name, String jdbcUrl, String userName, String password, String driver, int orgId) {
+    this(0, name, jdbcUrl, userName, password, Driver.valueOf(driver), orgId);
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getJdbcUrl() {
+    return jdbcUrl;
+  }
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public String getDriver() {
+    return driver.name();
+  }
+
+  public int getOrgId() {
+    return orgId;
+  }
+
+  @JsonIgnore
+  public Driver getDriverType() {
+    return driver;
   }
 
   @JsonIgnore
   public DataSource getDataSource() throws IllegalArgumentException, SQLException {
-    if (type == Driver.H2) {
+    if (driver == Driver.H2) {
       JdbcDataSource dataSource = new JdbcDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
       dataSource.setPassword(this.password);
       return dataSource;
-    } else if (type == Driver.POSTGRESQL) {
+    } else if (driver == Driver.POSTGRESQL) {
       PGSimpleDataSource dataSource = new PGSimpleDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
       dataSource.setPassword(this.password);
       return dataSource;
-    } else if (type == Driver.MYSQL) {
+    } else if (driver == Driver.MYSQL) {
       MysqlDataSource dataSource = new MysqlDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
       dataSource.setPassword(this.password);
       return dataSource;
-    } else if (type == Driver.MARIADB) {
+    } else if (driver == Driver.MARIADB) {
       MariaDbDataSource dataSource = new MariaDbDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
@@ -151,7 +185,7 @@ public class Database {
       return dataSource;
     }
 
-    throw new IllegalArgumentException(String.format("%s database is not supported", type));
+    throw new IllegalArgumentException(String.format("%s database is not supported", driver));
   }
 
   public static class DatabaseList {

@@ -38,9 +38,9 @@ public class Connections implements Managed {
   }
 
   public void addDatabase(Database database) throws SQLException {
-    if (dataSourceMap.containsKey(database.id)) {
+    if (dataSourceMap.containsKey(database.getId())) {
       throw new IllegalArgumentException(String.format("Connection already exists for database (%d, %s)",
-          database.id, database.jdbcUrl));
+          database.getId(), database.getJdbcUrl()));
     }
 
     DataSource dataSource = database.getDataSource();
@@ -53,8 +53,8 @@ public class Connections implements Managed {
     hikari.setHealthCheckRegistry(this.checkRegistry);
     hikari.setMetricRegistry(this.metricRegistry);
 
-    dataSourceMap.put(database.id, hikari);
-    logger.info(String.format("Inserted database (%d)", database.id));
+    dataSourceMap.put(database.getId(), hikari);
+    logger.info(String.format("Inserted database (%d)", database.getId()));
   }
 
   public HikariDataSource getDataSource(Long id) throws NotFoundException {

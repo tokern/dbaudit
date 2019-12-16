@@ -10,8 +10,8 @@ class RegisterTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
 
   private String body = "\"orgName\":\"Tokern\",\"orgSlug\":\"https://tokern.io\"," +
-      "\"userName\":\"user0\"," +
       "\"password\":\"passw0rd\"," +
+      "\"userName\":\"user0\"," +
       "\"email\":\"user0@email.com\"";
 
   @Test

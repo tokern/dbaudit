@@ -49,4 +49,16 @@ public class Query {
   public Query(String sql, long userId, long dbId, long orgId) {
     this(0, sql, userId, dbId, orgId, State.RUNNING);
   }
+
+  public static class RunQueryRequest {
+    public final String sql;
+    public final long dbId;
+
+    @JsonCreator
+    public RunQueryRequest(@JsonProperty("sql") String sql,
+                           @JsonProperty("dbId") long dbId) {
+      this.sql = sql;
+      this.dbId = dbId;
+    }
+  }
 }
