@@ -61,7 +61,7 @@ export const loadQueries = store => async state => {
     (queriesLastUpdated && new Date() - queriesLastUpdated > ONE_HOUR_MS)
   ) {
     store.setState({ queriesLoading: true });
-    const json = await fetchJson('GET', '/api/queries');
+    const json = await fetchJson('GET', '/api/queries', undefined, state.token);
     if (json.error) {
       message.error(json.error);
     }
@@ -79,7 +79,7 @@ export const deleteQuery = store => async (state, queryId) => {
     return q._id !== queryId;
   });
   store.setState({ queries: filteredQueries });
-  const json = await fetchJson('DELETE', '/api/queries/' + queryId);
+  const json = await fetchJson('DELETE', '/api/queries/' + queryId, undefined, state.token);
   if (json.error) {
     message.error(json.error);
     store.setState({ queries });
@@ -87,7 +87,7 @@ export const deleteQuery = store => async (state, queryId) => {
 };
 
 export const loadQuery = async (state, queryId) => {
-  const { error, query } = await fetchJson('GET', `/api/queries/${queryId}`);
+  const { error, query } = await fetchJson('GET', `/api/queries/${queryId}`, undefined, state.token);
   if (error) {
     message.error(error);
   }
@@ -116,7 +116,8 @@ export const runQuery = store => async state => {
   const { queryResult, error } = await fetchJson(
     'POST',
     '/api/query-result',
-    postData
+    postData,
+    state.token
   );
   if (error) {
     message.error(error);
@@ -140,7 +141,7 @@ export const saveQuery = store => async state => {
     connectionId: selectedConnectionId
   });
   if (query._id) {
-    fetchJson('PUT', `/api/queries/${query._id}`, queryData).then(json => {
+    fetchJson('PUT', `/api/queries/${query._id}`, queryData, state.token).then(json => {
       const { error, query } = json;
       const { queries } = store.getState();
       if (error) {
@@ -161,7 +162,7 @@ export const saveQuery = store => async state => {
       });
     });
   } else {
-    fetchJson('POST', `/api/queries`, queryData).then(json => {
+    fetchJson('POST', `/api/queries`, queryData, state.token).then(json => {
       const { error, query } = json;
       const { queries } = store.getState();
       if (error) {

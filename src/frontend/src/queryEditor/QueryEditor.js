@@ -33,7 +33,7 @@ function QueryEditor(props) {
 
   useEffect(() => {
     loadConnections();
-    loadTags();
+    // loadTags();
   }, [loadConnections, loadTags]);
 
   useEffect(() => {

@@ -94,7 +94,7 @@ function Toolbar({
   const error = showValidation && !queryName.length;
   const cloneDisabled = !queryId;
 
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = currentUser.systemRole === 'ADMIN';
 
   if (redirectToSignIn) {
     return <Redirect push to="/signin" />;

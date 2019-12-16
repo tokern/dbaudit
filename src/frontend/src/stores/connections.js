@@ -36,7 +36,7 @@ export const selectConnectionId = (state, selectedConnectionId) => {
 
 export const deleteConnection = async (state, connectionId) => {
   const { connections } = state;
-  const json = await fetchJson('DELETE', '/api/connections/' + connectionId);
+  const json = await fetchJson('DELETE', '/api/databases/' + connectionId, undefined, state.token);
   if (json.error) {
     return message.error('Delete failed');
   }
@@ -73,14 +73,14 @@ export const loadConnections = store => async (state, force) => {
       new Date() - connectionsLastUpdated > ONE_HOUR_MS)
   ) {
     store.setState({ connectionsLoading: true });
-    const { error, connections } = await fetchJson('GET', '/api/connections/');
+    const { error, databases } = await fetchJson('GET', '/api/databases/', undefined, state.token);
     if (error) {
       message.error(error);
     }
     const update = {
       connectionsLoading: false,
       connectionsLastUpdated: new Date(),
-      connections: sortConnections(connections)
+      connections: sortConnections(databases)
     };
 
     if (connections && connections.length === 1) {

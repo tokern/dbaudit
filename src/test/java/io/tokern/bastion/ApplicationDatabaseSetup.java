@@ -65,6 +65,7 @@ class ApplicationDatabaseSetup extends DropwizardAppExtension.ServiceListener<Ba
 
     // Insert a few databases
     jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
+        "BastionDb",
         "jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app",
         "bastion",
         "passw0rd",
@@ -73,6 +74,7 @@ class ApplicationDatabaseSetup extends DropwizardAppExtension.ServiceListener<Ba
     )));
 
     jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
+        "Bastion2",
         "jdbc://localhost/bastion2",
         "bastion_user",
         "bastion_password",

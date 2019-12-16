@@ -11,27 +11,27 @@ import java.util.List;
 
 public interface DatabaseDAO {
   @GetGeneratedKeys
-  @SqlUpdate("insert into dbs(jdbc_url, user_name, password, type, org_id) " +
-      "values(:jdbcUrl, :userName, :password, :type::db_type, :orgId)")
+  @SqlUpdate("insert into dbs(jdbc_url, name, user_name, password, type, org_id) " +
+      "values(:jdbcUrl, :name, :userName, :password, :type::db_type, :orgId)")
   Long insert(@BindFields Database database);
 
-  @SqlUpdate("update dbs set jdbc_url=:jdbcUrl, user_name = :userName, password=:password, " +
+  @SqlUpdate("update dbs set name=:name, jdbc_url=:jdbcUrl, user_name = :userName, password=:password, " +
       "type=:type::db_type where id = :id")
   void update(@BindFields Database database);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type, org_id from dbs")
+  @SqlQuery("select id, name, jdbc_url, user_name, password, type, org_id from dbs")
   @RegisterConstructorMapper(Database.class)
   List<Database> listAll();
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type, org_id from dbs where org_id = ?")
+  @SqlQuery("select id, name, jdbc_url, user_name, password, type, org_id from dbs where org_id = ?")
   @RegisterConstructorMapper(Database.class)
   List<Database> listByOrgId(int orgId);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type, org_id from dbs where id = ? and org_id = ?")
+  @SqlQuery("select id, name, jdbc_url, user_name, password, type, org_id from dbs where id = ? and org_id = ?")
   @RegisterConstructorMapper(Database.class)
   Database getById(long id, int orgId);
 
-  @SqlQuery("select id, jdbc_url, user_name, password, type, org_id from dbs where jdbc_url = ? and org_id = ?")
+  @SqlQuery("select id, name, jdbc_url, user_name, password, type, org_id from dbs where jdbc_url = ? and org_id = ?")
   @RegisterConstructorMapper(Database.class)
   Database getByUrl(String jdbcUrl, int orgId);
 

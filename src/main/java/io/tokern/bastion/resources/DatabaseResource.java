@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+import java.util.Arrays;
 
 @Path("/databases")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,10 +31,18 @@ public class DatabaseResource {
 
   @PermitAll
   @GET
-  public List<Database> list(@Auth User principal) {
-    List<Database> databases = jdbi.withExtension(DatabaseDAO.class, dao -> dao.listByOrgId(principal.orgId));
-    logger.debug("Returning list of size: " + databases.size() + " for org: " + principal.orgId);
-    return databases;
+  public Database.DatabaseList list(@Auth User principal) {
+    Database.DatabaseList list = new Database.DatabaseList(
+        jdbi.withExtension(DatabaseDAO.class, dao -> dao.listByOrgId(principal.orgId)));
+    logger.debug("Returning list of size: " + list.databases.size() + " for org: " + principal.orgId);
+    return list;
+  }
+
+  @PermitAll
+  @GET
+  @Path("/drivers")
+  public Database.DriverList drivers(@Auth User principal) {
+    return new Database.DriverList(Arrays.asList(Database.Driver.values()));
   }
 
   @PermitAll
@@ -53,7 +61,11 @@ public class DatabaseResource {
 
   @POST
   public Database createDatabase(@Auth User principal, @Valid @NotNull Database database) {
-    Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(database));
+    Database updated = new Database(
+        database.id, database.name, database.jdbcUrl,
+        database.userName, database.password, database.type, principal.orgId);
+
+    Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
     return jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(id, principal.orgId));
   }
 
@@ -66,10 +78,11 @@ public class DatabaseResource {
     if (inDb != null) {
       Database updated = new Database(
           inDb.id,
+          request.getName() != null ? request.getName() : inDb.name,
           request.getJdbcUrl() != null ? request.getJdbcUrl() : inDb.jdbcUrl,
           request.getUserName() != null ? request.getUserName() : inDb.userName,
           request.getPassword() != null ? request.getPassword() : inDb.password,
-          request.getType() != null ? Database.Types.valueOf(request.getType()) : inDb.type,
+          request.getType() != null ? Database.Driver.valueOf(request.getType()) : inDb.type,
           inDb.orgId
       );
       jdbi.useExtension(DatabaseDAO.class, dao -> dao.update(updated));

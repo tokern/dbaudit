@@ -10,6 +10,7 @@ function ConnectionDropdown({
   addUpdateConnection,
   connections,
   currentUser,
+  token,
   selectConnectionId,
   selectedConnectionId
 }) {
@@ -55,14 +56,15 @@ function ConnectionDropdown({
           );
         })}
 
-        {currentUser.role === 'admin' && (
+        {currentUser.systemRole === 'ADMIN' && (
           <option value="new">... New connection</option>
         )}
-        {currentUser.role === 'admin' && (
+        {currentUser.systemRole === 'ADMIN' && (
           <option value="manage">... Manage connections</option>
         )}
       </Select>
       <ConnectionEditDrawer
+        token={token}
         visible={showEdit}
         placement="right"
         onClose={() => setShowEdit(false)}
@@ -77,6 +79,6 @@ function ConnectionDropdown({
 }
 
 export default connect(
-  ['connections', 'currentUser', 'selectedConnectionId'],
+  ['connections', 'currentUser', 'selectedConnectionId', 'token'],
   { selectConnectionId, addUpdateConnection }
 )(ConnectionDropdown);

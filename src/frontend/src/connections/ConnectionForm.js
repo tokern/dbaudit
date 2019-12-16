@@ -12,7 +12,7 @@ const TEXT = 'TEXT';
 const PASSWORD = 'PASSWORD';
 const CHECKBOX = 'CHECKBOX';
 
-function ConnectionForm({ connectionId, onConnectionSaved }) {
+function ConnectionForm({ token, connectionId, onConnectionSaved }) {
   const [connectionEdits, setConnectionEdits] = useState({});
   const [drivers, setDrivers] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -21,7 +21,8 @@ function ConnectionForm({ connectionId, onConnectionSaved }) {
   const [testSuccess, setTestSuccess] = useState(false);
 
   async function getDrivers() {
-    const json = await fetchJson('GET', '/api/drivers');
+    console.log(token);
+    const json = await fetchJson('GET', '/api/databases/drivers', undefined, token);
     if (json.error) {
       message.error(json.error);
     } else {
@@ -35,7 +36,7 @@ function ConnectionForm({ connectionId, onConnectionSaved }) {
 
   async function getConnection(connectionId) {
     if (connectionId) {
-      const json = await fetchJson('GET', `/api/connections/${connectionId}`);
+      const json = await fetchJson('GET', `/api/connections/${connectionId}`, undefined, token);
       if (json.error) {
         message.error(json.error);
       } else {
@@ -75,11 +76,11 @@ function ConnectionForm({ connectionId, onConnectionSaved }) {
     if (connectionEdits._id) {
       json = await fetchJson(
         'PUT',
-        '/api/connections/' + connectionEdits._id,
+        '/api/databases/' + connectionEdits._id,
         connectionEdits
       );
     } else {
-      json = await fetchJson('POST', '/api/connections', connectionEdits);
+      json = await fetchJson('POST', '/api/databases', connectionEdits, token);
     }
 
     if (json.error) {

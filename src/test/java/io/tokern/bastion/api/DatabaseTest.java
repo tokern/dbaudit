@@ -10,15 +10,17 @@ class DatabaseTest {
 
   private static final ObjectMapper objectMapper = Jackson.newObjectMapper();
 
-  private String jsonBody = "\"jdbcUrl\":\"jdbc://localhost/bastion\"," +
-          "\"userName\":\"user\"," +
-          "\"password\":\"password\"," +
-          "\"type\":\"MYSQL\"," +
-          "\"orgId\":1";
+  private String jsonBody = "\"name\":\"DatabaseTest\"," +
+      "\"jdbcUrl\":\"jdbc://localhost/bastion\"," +
+      "\"userName\":\"user\"," +
+      "\"password\":\"password\"," +
+      "\"type\":\"MYSQL\"," +
+      "\"orgId\":1";
 
   @Test
   void serializeToJson() throws Exception {
-    final Database database = new Database("jdbc://localhost/bastion", "user", "password", "MYSQL", 1);
+    final Database database = new Database("DatabaseTest", "jdbc://localhost/bastion",
+        "user", "password", "MYSQL", 1);
     String serialized = objectMapper.writeValueAsString(database);
 
     String expected = "{\"id\":0," + jsonBody + "}";
@@ -35,6 +37,16 @@ class DatabaseTest {
     assertEquals("jdbc://localhost/bastion", database.jdbcUrl);
     assertEquals("user", database.userName);
     assertEquals("password", database.password);
-    assertEquals(Database.Types.MYSQL, database.type);
+    assertEquals(Database.Driver.MYSQL, database.type);
+  }
+
+  @Test
+  void serializeDriver() throws Exception {
+    Database.Driver driver = Database.Driver.valueOf("POSTGRESQL");
+    String serialized = objectMapper.writeValueAsString(driver);
+
+    assertEquals("{\"name\":\"Postgresql\",\"fields\":[{\"label\":\"JdbcUrl\",\"formType\":\"TEXT\"," +
+        "\"key\":\"jdbcUrl\"},{\"label\":\"UserName\",\"formType\":\"TEXT\",\"key\":\"userName\"}," +
+        "{\"label\":\"Password\",\"formType\":\"PASSWORD\",\"key\":\"password\"}],\"id\":\"POSTGRESQL\"}", serialized);
   }
 }

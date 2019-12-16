@@ -74,6 +74,7 @@ public class DatabaseDAOTest {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
 
     Database updated = new Database(database.id,
+        database.name,
         database.jdbcUrl,
         "userNew",
         database.password,
@@ -98,7 +99,8 @@ public class DatabaseDAOTest {
 
   @Test
   public void createDatabase() {
-    Long id = databaseDAO.insert(new Database("jdbc://localhost/bastion", "user", "password", "MYSQL", 1));
+    Long id = databaseDAO.insert(new Database("createDatabaseTest","jdbc://localhost/bastion",
+        "user", "password", "MYSQL", 1));
 
     List<Map<String,Object>> rows = handle.select("select * from dbs where id=?", id)
         .mapToMap().list();
@@ -107,6 +109,7 @@ public class DatabaseDAOTest {
 
     Map<String, Object> row = rows.get(0);
     assertEquals(id.intValue(), row.get("id"));
+    assertEquals("createDatabaseTest", row.get("name"));
     assertEquals("jdbc://localhost/bastion", row.get("jdbc_url"));
     assertEquals("user", row.get("user_name"));
     assertEquals("password", row.get("password"));

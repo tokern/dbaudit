@@ -1,7 +1,7 @@
 import 'whatwg-fetch';
 import message from '../common/message';
 
-export default function fetchJson(method, url, body) {
+export default function fetchJson(method, url, body, token) {
   const BASE_URL = window.BASE_URL || '';
   const opts = {
     method: method.toUpperCase(),
@@ -14,6 +14,11 @@ export default function fetchJson(method, url, body) {
       Pragma: 'no-cache'
     }
   };
+
+  if (token) {
+    opts.headers.Authorization = 'Bearer ' + token;
+  }
+
   if (body) {
     opts.body = JSON.stringify(body);
   }

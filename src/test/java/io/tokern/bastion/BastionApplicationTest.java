@@ -252,7 +252,8 @@ class BastionApplicationTest {
   @ParameterizedTest
   @MethodSource("provideAdminAndDbAdmin")
   void createDatabase(User user, String token) {
-    Database database = new Database("jdbc://localhost/bastion3", "user", "password", "MYSQL", user.orgId);
+    Database database = new Database("createTest", "jdbc://localhost/bastion3",
+        "user", "password", "MYSQL", user.orgId);
     Entity<?> entity = Entity.entity(database, MediaType.APPLICATION_JSON);
 
     final Response response =

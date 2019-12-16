@@ -6,10 +6,6 @@ import { Redirect } from 'react-router-dom';
 import { getUserToken } from "./stores/user";
 
 function Authenticated({ children, adminRegistrationOpen, token, refreshAppContext }) {
-  useEffect(() => {
-    refreshAppContext();
-  }, [refreshAppContext]);
-
   if (token === undefined) {
     refreshAppContext();
 

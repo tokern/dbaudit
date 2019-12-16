@@ -3,6 +3,7 @@ import Drawer from '../common/Drawer';
 import ConnectionForm from './ConnectionForm';
 
 function ConnectionEditDrawer({
+  token,
   connectionId,
   visible,
   onClose,
@@ -19,6 +20,7 @@ function ConnectionEditDrawer({
       placement={placement || 'right'}
     >
       <ConnectionForm
+        token={token}
         connectionId={connectionId}
         onConnectionSaved={onConnectionSaved}
       />

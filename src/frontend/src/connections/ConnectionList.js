@@ -14,6 +14,7 @@ import ConnectionEditDrawer from './ConnectionEditDrawer';
 
 function ConnectionList({
   currentUser,
+  token,
   loadConnections,
   deleteConnection,
   connections,
@@ -97,7 +98,7 @@ function ConnectionList({
 
         const actions = [];
 
-        if (currentUser.role === 'admin' && item.editable) {
+        if (currentUser.systemRole === 'ADMIN' && item.editable) {
           actions.push(
             <Button
               key="edit"
@@ -132,6 +133,7 @@ function ConnectionList({
       })}
 
       <ConnectionEditDrawer
+        token={token}
         connectionId={connectionId}
         visible={showEdit}
         onClose={handleEditDrawerClose}
@@ -143,7 +145,7 @@ function ConnectionList({
 }
 
 export default connect(
-  ['connections', 'currentUser'],
+  ['connections', 'currentUser', 'token'],
   store => ({
     selectConnectionId,
     deleteConnection,
