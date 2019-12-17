@@ -1,0 +1,129 @@
+/* variables
+============================================================================ */
+:root {
+  /* 
+    These REFERENCE are various colors that were sprinkled throughout
+    They are kept around for reference until colors settle
+  */
+  --REFERENCE-link-color: #00b7ff;
+  --REFERENCE-button-border-color: #40a9ff;
+  --REFERENCE-button-active-color: #096dd9;
+  --REFERENCE-primary-color: #1890ff;
+
+  --primary-color: #1890ff;
+  --primary-dark-color: #0070d8;
+  --primary-light-color: #42a4ff;
+  --primary-color-90: rgba(24, 144, 255, 0.9);
+  --primary-color-30: rgba(24, 144, 255, 0.3);
+  --secondary-color: rgb(250, 50, 173);
+  --secondary-dark-color: hsl(323, 100%, 50%);
+  --secondary-color-90: rgba(250, 50, 173, 0.9);
+  --secondary-color-75: rgba(250, 50, 173, 0.75);
+  --secondary-color-30: rgba(250, 50, 173, 0.3);
+
+  --border: 1px solid rgba(0, 0, 0, 0.15);
+
+  --box-shadow-1: rgba(64, 169, 255, 0.7) 1px 1px 1px 1px,
+    rgb(255, 154, 251, 0.3) 2px 2px 4px 2px;
+  --box-shadow-2: rgba(56, 165, 255, 0.44) 2px 2px 4px 1px;
+}
+
+/* core styles
+============================================================================ */
+a {
+  color: var(--primary-color);
+}
+a:hover,
+a:active,
+a:focus {
+  text-decoration: none;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+input {
+  overflow: visible;
+}
+
+/* reach ui 
+============================================================================ */
+[data-reach-tooltip] {
+  z-index: 9000 !important;
+}
+
+[data-reach-dialog-overlay] {
+  z-index: 9000 !important;
+}
+
+[data-reach-dialog-content] {
+  z-index: 9000 !important;
+}
+
+[data-reach-dialog-overlay] {
+  background: rgba(0, 169, 253, 0.45);
+  background: radial-gradient(
+    at 50% 300px,
+    rgba(248, 70, 252, 0.4) 0%,
+    rgba(0, 169, 253, 0.45) 100%
+  );
+}
+
+[data-reach-menu-item][data-selected] {
+  background: var(--primary-color);
+  color: white;
+  outline: none;
+}
+
+/*  Utilities
+============================================================================ */
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.h-100 {
+  height: 100%;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.bg-error {
+  background-color: var(--secondary-color-75);
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.spinning {
+  -webkit-animation: spin 2s linear infinite;
+  -moz-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+@-moz-keyframes spin {
+  100% {
+    -moz-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}

@@ -24,7 +24,7 @@ class ConnectionsTest {
   static void initMocks() throws SQLException {
     checkRegistry = new HealthCheckRegistry();
     metricRegistry = new MetricRegistry();
-    Database database = new Database(1, "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Types.H2, 1);
+    Database database = new Database(1, "ConnectionsTest", "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Driver.H2, 1);
     connections = new Connections(checkRegistry, metricRegistry);
     connections.addDatabase(database);
     System.setProperty("p6spy.config.appender", "com.p6spy.engine.spy.appender.Slf4JLogger");
@@ -42,20 +42,20 @@ class ConnectionsTest {
 
   @Test
   void addTest() throws SQLException {
-    Database d2 = new Database(2, "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Types.H2, 1);
+    Database d2 = new Database(2, "addTest", "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Driver.H2, 1);
     connections.addDatabase(d2);
     assertNotNull(connections.getDataSource(2L));
   }
 
   @Test
   void disAllowDuplicate() {
-    Database d1 = new Database(1, "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Types.H2, 1);
+    Database d1 = new Database(1, "disAllowDuplicateTest", "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Driver.H2, 1);
     assertThrows(IllegalArgumentException.class, () -> connections.addDatabase(d1));
   }
 
   @Test
   void deleteTest() throws SQLException {
-    Database d3 = new Database(3, "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Types.H2, 1);
+    Database d3 = new Database(3, "deleteTest", "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Driver.H2, 1);
     connections.addDatabase(d3);
     assertDoesNotThrow(() -> connections.deleteDataSource(3L));
   }

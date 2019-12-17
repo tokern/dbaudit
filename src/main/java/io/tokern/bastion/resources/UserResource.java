@@ -49,7 +49,7 @@ public class UserResource {
 
     if (user != null) {
       if (user.login(loginRequest.password)) {
-        return Response.ok(new LoginResponse(jwtTokenManager.generateToken(user))).build();
+        return Response.ok(new LoginResponse(jwtTokenManager.generateToken(user), user)).build();
       }
     }
 
@@ -73,7 +73,7 @@ public class UserResource {
   @Path("/refreshJWT")
   @GET
   public Response refreshJWT(@Auth final User principal) {
-    return Response.ok(new LoginResponse(jwtTokenManager.generateToken(principal))).build();
+    return Response.ok(new LoginResponse(jwtTokenManager.generateToken(principal), principal)).build();
   }
 
   @RolesAllowed("ADMIN")

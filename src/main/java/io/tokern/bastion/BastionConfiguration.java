@@ -3,6 +3,7 @@ package io.tokern.bastion;
 import io.dropwizard.Configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.db.DataSourceFactory;
+import io.tokern.bastion.core.FEConfiguration;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
 import io.tokern.bastion.core.auth.JwtConfiguration;
 
@@ -20,8 +21,11 @@ public class BastionConfiguration extends Configuration {
 
   @Valid
   @NotNull
-
   private JwtConfiguration jwtConfiguration = new JwtConfiguration();
+
+  @Valid
+  @NotNull
+  private FEConfiguration feConfiguration = new FEConfiguration();
 
   @JsonProperty("database")
   public void setDataSourceFactory(DataSourceFactory factory) {
@@ -51,5 +55,15 @@ public class BastionConfiguration extends Configuration {
   @JsonProperty("jwt")
   public void setJwtConfiguration(JwtConfiguration jwtConfiguration) {
     this.jwtConfiguration = jwtConfiguration;
+  }
+
+  @JsonProperty("fe")
+  public FEConfiguration getFeConfiguration() {
+    return feConfiguration;
+  }
+
+  @JsonProperty("fe")
+  public void setFeConfiguration(FEConfiguration feConfiguration) {
+    this.feConfiguration = feConfiguration;
   }
 }

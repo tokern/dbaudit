@@ -21,3 +21,4 @@ database:
 flyway:
   schemas:
     - bastion_app
+

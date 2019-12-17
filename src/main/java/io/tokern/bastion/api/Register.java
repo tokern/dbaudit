@@ -13,7 +13,7 @@ public class Register {
   @JsonCreator
   public Register(@JsonProperty("orgName") String orgName,
                   @JsonProperty("orgSlug") String orgSlug,
-                  @JsonProperty("userName") String userName,
+                  @JsonProperty("displayName") String userName,
                   @JsonProperty("userEmail") String email,
                   @JsonProperty("password") String password) {
 

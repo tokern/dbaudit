@@ -63,9 +63,9 @@ public class DatabaseDAOTest {
   @Test
   public void selectByIdurl() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
-    assertEquals("jdbc://localhost/bastion_1", database.jdbcUrl);
+    assertEquals("jdbc://localhost/bastion_1", database.getJdbcUrl());
 
-    Database byId = databaseDAO.getById(database.id, 1);
+    Database byId = databaseDAO.getById(database.getId(), 1);
     assertNotNull(byId);
   }
 
@@ -73,32 +73,34 @@ public class DatabaseDAOTest {
   public void update() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
 
-    Database updated = new Database(database.id,
-        database.jdbcUrl,
+    Database updated = new Database(database.getId(),
+        database.getName(),
+        database.getJdbcUrl(),
         "userNew",
-        database.password,
-        database.type,
-        database.orgId);
+        database.getPassword(),
+        database.getDriver(),
+        database.getOrgId());
 
     databaseDAO.update(updated);
 
-    Database databaseNew = databaseDAO.getById(database.id, 1);
-    assertEquals("userNew", databaseNew.userName);
+    Database databaseNew = databaseDAO.getById(database.getId(), 1);
+    assertEquals("userNew", databaseNew.getUserName());
   }
 
   @Test
   public void delete() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_3", 1);
 
-    databaseDAO.deleteById(database.id, 1);
+    databaseDAO.deleteById(database.getId(), 1);
 
-    Database databaseNew = databaseDAO.getById(database.id, 1);
+    Database databaseNew = databaseDAO.getById(database.getId(), 1);
     assertNull(databaseNew);
   }
 
   @Test
   public void createDatabase() {
-    Long id = databaseDAO.insert(new Database("jdbc://localhost/bastion", "user", "password", "MYSQL", 1));
+    Long id = databaseDAO.insert(new Database("createDatabaseTest","jdbc://localhost/bastion",
+        "user", "password", "MYSQL", 1));
 
     List<Map<String,Object>> rows = handle.select("select * from dbs where id=?", id)
         .mapToMap().list();
@@ -107,6 +109,7 @@ public class DatabaseDAOTest {
 
     Map<String, Object> row = rows.get(0);
     assertEquals(id.intValue(), row.get("id"));
+    assertEquals("createDatabaseTest", row.get("name"));
     assertEquals("jdbc://localhost/bastion", row.get("jdbc_url"));
     assertEquals("user", row.get("user_name"));
     assertEquals("password", row.get("password"));

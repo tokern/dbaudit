@@ -28,7 +28,7 @@ class ThreadPoolTest {
   static void init() throws SQLException {
     checkRegistry = new HealthCheckRegistry();
     metricRegistry = new MetricRegistry();
-    Database database = new Database(1, "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Types.H2, 1);
+    Database database = new Database(1, "ThreadPoolTest", "jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1", "", "", Database.Driver.H2, 1);
     connections = new Connections(checkRegistry, metricRegistry);
     connections.addDatabase(database);
     System.setProperty("p6spy.config.appender", "com.p6spy.engine.spy.appender.Slf4JLogger");
