@@ -32,6 +32,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
 
   useEffect(() => {
     getDrivers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function getConnection(connectionId) {
@@ -47,6 +48,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
 
   useEffect(() => {
     getConnection(connectionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionId]);
 
   const setConnectionValue = (key, value) => {

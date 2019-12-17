@@ -101,7 +101,7 @@ export const loadQuery = async (state, queryId) => {
 };
 
 export const runQuery = store => async state => {
-  const { cacheKey, query, selectedText, selectedConnectionId } = state;
+  const { query, selectedText, selectedConnectionId } = state;
 
   store.setState({
     isRunning: true,
