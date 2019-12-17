@@ -1,7 +1,5 @@
 package io.tokern.bastion.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.tokern.bastion.core.FEConfiguration;
 
 public class BootstrapResponse {
@@ -32,11 +30,10 @@ public class BootstrapResponse {
   public final Config config;
   public final String version;
 
-  @JsonCreator
-  public BootstrapResponse(@JsonProperty("adminRegistrationOpen") boolean adminRegistrationOpen,
-                           @JsonProperty("currentUser") String currentUser,
-                           @JsonProperty("config") Config config,
-                           @JsonProperty("version") String version) {
+  public BootstrapResponse(boolean adminRegistrationOpen,
+                           String currentUser,
+                           Config config,
+                           String version) {
     this.adminRegistrationOpen = adminRegistrationOpen;
     this.currentUser = currentUser;
     this.config = config;

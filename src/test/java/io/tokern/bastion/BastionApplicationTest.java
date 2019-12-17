@@ -303,7 +303,7 @@ class BastionApplicationTest {
     List<Query> queries = response.readEntity(new GenericType<List<Query>>() {});
 
     // 1 extra because of runQuery
-    assertEquals(2, queries.size());
+    assertEquals(3, queries.size());
   }
 
   @Test
@@ -320,7 +320,7 @@ class BastionApplicationTest {
 
   @ParameterizedTest
   @MethodSource("provideUsersAndTokens")
-  void runQuery(User user, String token) throws InterruptedException {
+  void createQuery(User user, String token) throws InterruptedException {
     Query.RunQueryRequest query = new Query.RunQueryRequest("SELECT 1 as ONE", 1);
     Entity<?> entity = Entity.entity(query, MediaType.APPLICATION_JSON);
 
@@ -359,6 +359,24 @@ class BastionApplicationTest {
 
     assertEquals("{\"queryResult\":{\"meta\":{\"one\":{\"dataType\":\"int4\",\"maxValueLength\":10}}," +
         "\"fields\":[\"one\"],\"rows\":[{\"one\":1}]}}",
+        rowSet);
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideUsersAndTokens")
+  void runQuery(User user, String token) {
+    Query.RunQueryRequest query = new Query.RunQueryRequest("SELECT 1 as ONE", 1);
+    Entity<?> entity = Entity.entity(query, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/run")
+            .request().header("Authorization", "BEARER " + token).post(entity);
+
+    assertEquals(200, response.getStatus());
+    String rowSet = response.readEntity(String.class);
+
+    assertEquals("{\"queryResult\":{\"meta\":{\"one\":{\"dataType\":\"int4\",\"maxValueLength\":10}}," +
+            "\"fields\":[\"one\"],\"rows\":[{\"one\":1}]}}",
         rowSet);
   }
 }
