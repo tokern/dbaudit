@@ -1,0 +1,24 @@
+logging:
+  level: INFO
+  loggers:
+    io.tokern: DEBUG
+server:
+  rootPath: /api
+
+database:
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+
+  # the username
+  user: developer
+
+  # the password
+  password: passw0rd
+
+  # the JDBC URL
+  url: jdbc:postgresql://localhost/devdb?currentSchema=bastion_app
+
+flyway:
+  schemas:
+    - bastion_app
+
