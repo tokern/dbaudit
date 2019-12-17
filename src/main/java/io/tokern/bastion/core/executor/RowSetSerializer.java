@@ -35,11 +35,31 @@ public class RowSetSerializer extends JsonSerializer<RowSet> {
       String[] columnNames = new String[numColumns];
       int[] columnTypes = new int[numColumns];
 
+      jgen.writeStartObject();
+      jgen.writeFieldName("queryResult");
+      jgen.writeStartObject();
+      jgen.writeFieldName("meta");
+      jgen.writeStartObject();
       for (int i = 0; i < columnNames.length; i++) {
+        jgen.writeFieldName(rsmd.getColumnLabel(i + 1));
+        jgen.writeStartObject();
+        jgen.writeStringField("dataType", rsmd.getColumnTypeName(i + 1));
+        jgen.writeFieldName("maxValueLength");
+        jgen.writeNumber(rsmd.getPrecision(i + 1));
+        jgen.writeEndObject();
         columnNames[i] = rsmd.getColumnLabel(i + 1);
         columnTypes[i] = rsmd.getColumnType(i + 1);
       }
+      jgen.writeEndObject();
 
+      jgen.writeFieldName("fields");
+      jgen.writeStartArray();
+      for (int i = 0; i < columnNames.length; i++) {
+        jgen.writeString(rsmd.getColumnName(i + 1));
+      }
+      jgen.writeEndArray();
+
+      jgen.writeFieldName("rows");
       jgen.writeStartArray();
 
       while (rs.next()) {
@@ -165,6 +185,8 @@ public class RowSetSerializer extends JsonSerializer<RowSet> {
       }
 
       jgen.writeEndArray();
+      jgen.writeEndObject();
+      jgen.writeEndObject();
 
     } catch (SQLException e) {
       throw new ResultSetSerializerException(e);

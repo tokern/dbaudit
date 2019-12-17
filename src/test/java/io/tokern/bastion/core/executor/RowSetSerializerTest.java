@@ -37,6 +37,9 @@ class RowSetSerializerTest {
     StringWriter writer = new StringWriter();
     objectMapper.writeValue(writer, objectNode);
     String serialized = writer.toString();
-    assertEquals("{\"results\":[{\"1\":1}]}", serialized);
+    assertEquals(
+        "{\"results\":{\"queryResult\":{\"meta\":{\"1\":{\"dataType\":\"INTEGER\",\"maxValueLength\":10}}," +
+            "\"fields\":[\"1\"],\"rows\":[{\"1\":1}]}}}",
+        serialized);
   }
 }

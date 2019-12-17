@@ -5,7 +5,7 @@ export const refreshAppContext = async () => {
     config,
     adminRegistrationOpen,
     version
-  } = await fetchJson('GET', 'api/bootstrap');
+  } = await fetchJson('GET', '/api/bootstrap');
   if (!config) {
     return;
   }

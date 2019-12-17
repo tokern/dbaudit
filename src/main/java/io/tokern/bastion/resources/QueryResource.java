@@ -54,11 +54,29 @@ public class QueryResource {
     return queryDAO.getById(queryId, principal.orgId);
   }
 
-  @GET
-  @Path("{queryId}/results")
-  public Response getResults(@Auth User principal, @PathParam("queryId") final long queryId) {
+  private Long startQuery(User principal, Query.RunQueryRequest request) throws NotFoundException, SQLException {
+    Database database = databaseDAO.getById(request.dbId, principal.orgId);
+    if (database == null) {
+      throw new NotFoundException(String.format("Database with id = %d not found", request.dbId));
+    }
+    Query query = new Query(request.sql, principal.id, database.getId(), principal.orgId);
+    Long id = queryDAO.insert(query);
+    Query saved = queryDAO.getById(id, principal.orgId);
+    Future<ThreadPool.Result> future = threadPool.getService().submit(
+        new ThreadPool.Work(saved, queryDAO, connections.getDataSource(query.dbId).getConnection()));
+    resultCache.put(id, future);
+    return id;
+  }
+
+  private Response getQueryResult(User principal, long queryId, boolean isBlocking) throws InterruptedException {
     Query query = queryDAO.getById(queryId, principal.orgId);
     if (query != null) {
+      if (isBlocking) {
+        while (query.state == Query.State.WAITING || query.state == Query.State.RUNNING) {
+          Thread.sleep(200);
+          query = queryDAO.getById(queryId, principal.orgId);
+        }
+      }
       if (query.state == Query.State.WAITING || query.state == Query.State.RUNNING) {
         return Response.status(202).entity(
             String.format("Query %d is in %s state", query.id, query.state.name())).build();
@@ -76,7 +94,7 @@ public class QueryResource {
 
         if (query.state == Query.State.ERROR) {
           responseCode = 400;
-          responseObject = result != null ? result.throwable : "Query had an ERROR but results are not available";
+          responseObject = result != null ? result.throwable : "Query had an ERROR and results are not available";
         } else {
           responseCode = 200;
           responseObject = result != null ? result.resultSet : "Query succeeded but results are not available";
@@ -88,21 +106,24 @@ public class QueryResource {
     return Response.status(404).entity(String.format("Query %d not found.", queryId)).build();
   }
 
+
+  @GET
+  @Path("{queryId}/results")
+  public Response getResults(@Auth User principal, @PathParam("queryId") final long queryId) {
+    try {
+      return this.getQueryResult(principal, queryId, false);
+    } catch (InterruptedException | NotFoundException exception) {
+      return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
+          .entity(exception.getMessage()).build();
+  }
+}
+
   @POST
   public Response createQuery(@Auth User principal, @Valid @NotNull Query.RunQueryRequest request) {
     try {
-      Database database = databaseDAO.getById(request.dbId, principal.orgId);
-      if (database == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-      }
-      Query query = new Query(request.sql, principal.id, database.getId(), principal.orgId);
-      Long id = queryDAO.insert(query);
-      Query saved = queryDAO.getById(id, principal.orgId);
-      Future<ThreadPool.Result> future = threadPool.getService().submit(
-          new ThreadPool.Work(saved, queryDAO, connections.getDataSource(query.dbId).getConnection()));
-      resultCache.put(id, future);
-      return Response.ok(saved).build();
-    } catch (SQLException exception) {
+      Long id = startQuery(principal, request);
+      return Response.ok(queryDAO.getById(id, principal.orgId)).build();
+    } catch (NotFoundException | SQLException exception) {
       return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
           .entity(exception.getMessage()).build();
     }
@@ -112,38 +133,11 @@ public class QueryResource {
   @Path("/run")
   public Response runQuery(@Auth User principal, @Valid @NotNull Query.RunQueryRequest request) {
     try {
-      Database database = databaseDAO.getById(request.dbId, principal.orgId);
-      if (database == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-      }
-      Query query = new Query(request.sql, principal.id, database.getId(), principal.orgId);
-      Long id = queryDAO.insert(query);
-      Query saved = queryDAO.getById(id, principal.orgId);
-      Future<ThreadPool.Result> future = threadPool.getService().submit(
-          new ThreadPool.Work(saved, queryDAO, connections.getDataSource(query.dbId).getConnection()));
-
-      ThreadPool.Result result = null;
-      try {
-        result = future.get();
-      } catch (InterruptedException | ExecutionException exception) {
-        logger.warn(String.format("Exception when getting result for %d", query.id), exception);
-      }
-
-      int responseCode = 0;
-      Object responseObject = null;
-
-      if (query.state == Query.State.ERROR) {
-        responseCode = 400;
-        responseObject = result != null ? result.throwable : "Query had an ERROR but results are not available";
-      } else {
-        responseCode = 200;
-        responseObject = result != null ? result.resultSet : "Query succeeded but results are not available";
-      }
-
-      return Response.status(responseCode).entity(responseObject).build();
-    } catch (SQLException exception) {
+      Long id = startQuery(principal, request);
+      return this.getQueryResult(principal, id, true);
+    } catch (InterruptedException | NotFoundException | SQLException exception) {
       return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
-          .entity(exception.getMessage()).build();
+        .entity(exception.getMessage()).build();
     }
   }
 }

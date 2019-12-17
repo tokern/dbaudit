@@ -210,7 +210,7 @@ function QueryListDrawer({
             <option value="">All connections</option>
             {connections.map(connection => {
               return (
-                <option key={connection._id} value={connection._id}>
+                <option key={connection.id} value={connection.id}>
                   {connection.name}
                 </option>
               );
