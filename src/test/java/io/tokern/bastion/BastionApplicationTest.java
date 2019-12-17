@@ -332,7 +332,6 @@ class BastionApplicationTest {
     Query created = response.readEntity(Query.class);
 
     assertTrue(created.id > 0);
-    assertEquals(Query.State.RUNNING, created.state);
 
     while (created.state == Query.State.RUNNING || created.state == Query.State.WAITING) {
       Thread.sleep(500);
