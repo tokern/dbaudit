@@ -28,6 +28,7 @@
     "react-split-pane": "^0.1.87",
     "react-window": "^1.8.5",
     "taucharts": "^2.7.4",
+    "unissist": "^1.4.0",
     "unistore": "^3.5.0",
     "whatwg-fetch": "^3.0.0"
   },

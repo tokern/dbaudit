@@ -11402,6 +11402,11 @@ unique-slug@^2.0.0:
   dependencies:
     imurmurhash "^0.1.4"
 
+unissist@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/unissist/-/unissist-1.4.0.tgz#b989bb156af626c2697a573b7d0d155b693179a9"
+  integrity sha512-C54sIbZ/+LG2uNhBIXRMCLk0QVVapa33+4LZFoouHX701XimbVKMWCpgyeKuckgu7da4n7JMswrTw57Va9DGWQ==
+
 unistore@^3.5.0:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/unistore/-/unistore-3.5.1.tgz#2ce7e17524f8e1390adaf59a88abdeb39e455333"
