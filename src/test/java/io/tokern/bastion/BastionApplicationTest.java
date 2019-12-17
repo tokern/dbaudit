@@ -89,7 +89,7 @@ class BastionApplicationTest {
     Entity<?> entity = Entity.entity(register, MediaType.APPLICATION_JSON);
 
     final Response response
-        = EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/register")
+        = EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/bootstrap/register")
         .request().post(entity);
 
     assertEquals(200, response.getStatus());
@@ -231,9 +231,9 @@ class BastionApplicationTest {
             .request().header("Authorization", "BEARER " + token).get();
 
     assertEquals(200, response.getStatus());
-    List<Database> databases = response.readEntity(new GenericType<List<Database>>() {});
+    Database.DatabaseList list = response.readEntity(Database.DatabaseList.class);
 
-    assertEquals(2, databases.size());
+    assertEquals(2, list.databases.size());
   }
 
   @ParameterizedTest
@@ -252,7 +252,7 @@ class BastionApplicationTest {
   @ParameterizedTest
   @MethodSource("provideAdminAndDbAdmin")
   void createDatabase(User user, String token) {
-    Database database = new Database("createTest", "jdbc://localhost/bastion3",
+    Database database = new Database("createTest" + user.name, "jdbc://localhost/bastion3",
         "user", "password", "MYSQL", user.orgId);
     Entity<?> entity = Entity.entity(database, MediaType.APPLICATION_JSON);
 
@@ -321,7 +321,7 @@ class BastionApplicationTest {
   @ParameterizedTest
   @MethodSource("provideUsersAndTokens")
   void runQuery(User user, String token) throws InterruptedException {
-    Query query = new Query("SELECT 1 as ONE", user.id, 1, user.orgId);
+    Query.RunQueryRequest query = new Query.RunQueryRequest("SELECT 1 as ONE", 1);
     Entity<?> entity = Entity.entity(query, MediaType.APPLICATION_JSON);
 
     final Response response =
@@ -357,6 +357,8 @@ class BastionApplicationTest {
     assertEquals(200, queryResult.getStatus());
     String rowSet = queryResult.readEntity(String.class);
 
-    assertEquals("[{\"one\":1}]", rowSet);
+    assertEquals("{\"queryResult\":{\"meta\":{\"one\":{\"dataType\":\"int4\",\"maxValueLength\":10}}," +
+        "\"fields\":[\"one\"],\"rows\":[{\"one\":1}]}}",
+        rowSet);
   }
 }

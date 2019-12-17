@@ -49,4 +49,16 @@ class DatabaseTest {
         "\"key\":\"jdbcUrl\"},{\"label\":\"UserName\",\"formType\":\"TEXT\",\"key\":\"userName\"}," +
         "{\"label\":\"Password\",\"formType\":\"PASSWORD\",\"key\":\"password\"}],\"id\":\"POSTGRESQL\"}", serialized);
   }
+
+  @Test
+  void deserializeDatabaseList() throws Exception {
+    String json = "{\"databases\":[{\"id\":2,\"name\":\"Bastion2\",\"jdbcUrl\":\"jdbc://localhost/bastion2\"," +
+        "\"userName\":\"bastion_user\",\"password\":\"bastion_password\",\"driver\":\"MYSQL\",\"orgId\":1}," +
+        "{\"id\":1,\"name\":\"BastionDb\"," +
+        "\"jdbcUrl\":\"jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app\"," +
+        "\"userName\":\"bastion\",\"password\":\"passw0rd\",\"driver\":\"POSTGRESQL\",\"orgId\":1}]}";
+
+    Database.DatabaseList list = objectMapper.readValue(json, Database.DatabaseList.class);
+    assertEquals(2, list.databases.size());
+  }
 }

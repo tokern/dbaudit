@@ -191,7 +191,8 @@ public class Database {
   public static class DatabaseList {
     public final List<Database> databases;
 
-    public DatabaseList(List<Database> databases) {
+    @JsonCreator
+    public DatabaseList(@JsonProperty("databases") List<Database> databases) {
       this.databases = databases;
     }
   }
