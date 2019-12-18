@@ -1,6 +1,17 @@
 logging:
   level: INFO
   loggers:
-    io.tokern: DEBUG
+    io.tokern: ${BASTION_LOG_LEVEL:-INFO}
 server:
   rootPath: /api
+
+database:
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+  user: ${BASTION_USER:-}
+  password: ${BASTION_PWD:-}
+  url: ${BASTION_JDBC_URL:-}
+
+flyway:
+  schemas:
+    - ${BASTION_SCHEMA:-}
