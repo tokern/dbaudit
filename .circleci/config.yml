@@ -91,10 +91,10 @@ jobs:
       - run: mvn package -DskipTests
 
       - save_cache:
-        paths:
-          - ~/.m2
-          - ~/repo/target/node
-        key: v1-dependencies-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+            - ~/repo/target/node
+          key: v1-dependencies-{{ checksum "pom.xml" }}
 
       - run:
           name: build docker and publish
