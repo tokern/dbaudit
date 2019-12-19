@@ -55,6 +55,7 @@ jobs:
       - run:
           name: Wait for db
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -87,19 +88,31 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-{{ checksum "src/frontend/yarn.lock" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: mvn package -DskipTests
+      - run: mvn package -DskipTests -Prelease
 
       - save_cache:
           paths:
-            - ~/.m2
-            - ~/repo/target/node
-          key: v1-dependencies-{{ checksum "pom.xml" }}
+            - ~/repo/src/frontend/node_modules
+          key: v1-dependencies-{{ checksum "src/frontend/yarn.lock" }}
 
       - run:
           name: build docker and publish
           command: |
-            ./docker/build_image.sh $CIRCLE_BRANCH --publish --latest
+            ./docker/build_image.sh $CIRCLE_TAG --publish --latest
+
+      - run:
+          name: install git release utilities
+          command: |
+            go get github.com/aktau/github-release
+            go get -u github.com/git-chglog/git-chglog/cmd/git-chglog
+
+      - run:
+          name: release
+          command: |
+            ~/go/bin/git-chglog $CIRCLE_TAG | ~/go/bin/github-release release --description - --tag $CIRCLE_TAG
+
 
