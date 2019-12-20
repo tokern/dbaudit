@@ -63,16 +63,14 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: mvn package -DskipTests
+      # run tests!
+      - run: mvn clean test
 
       - save_cache:
           paths:
             - ~/.m2
             - ~/repo/target/node
           key: v1-dependencies-{{ checksum "pom.xml" }}
-
-      # run tests!
-      - run: mvn clean test
 
       - store_artifacts:
           path:  target/surefire-reports
@@ -82,7 +80,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/openjdk:11-jdk
+      - image: tokern/openjdk:13.0.1-jdk-buster
     steps:
       - checkout
       - restore_cache:
@@ -99,16 +97,13 @@ jobs:
             - ~/repo/src/frontend/node_modules
           key: v1-dependencies-{{ checksum "src/frontend/yarn.lock" }}
 
+      - setup_remote_docker:
+          docker_layer_caching: true
+
       - run:
           name: build docker and publish
           command: |
             ./docker/build_image.sh $CIRCLE_TAG --publish --latest
-
-      - run:
-          name: install git release utilities
-          command: |
-            go get github.com/aktau/github-release
-            go get -u github.com/git-chglog/git-chglog/cmd/git-chglog
 
       - run:
           name: release
