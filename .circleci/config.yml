@@ -80,7 +80,7 @@ jobs:
 
   deploy:
     docker:
-      - image: tokern/openjdk:13.0.1-jdk-buster
+      - image: tokern/openjdk:13.0.1-buster
     steps:
       - checkout
       - restore_cache:
