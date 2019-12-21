@@ -4,6 +4,12 @@ logging:
     io.tokern: ${BASTION_LOG_LEVEL:-INFO}
 server:
   rootPath: /api
+  applicationConnectors:
+    - type: http
+      port: 3145
+  adminConnectors:
+    - type: http
+      port: 3146
 
 database:
   # the name of your JDBC driver

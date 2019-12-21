@@ -1,14 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 
 # Bastion Database Info
 
-# AWS Elastic Beanstalk w/ RDS
 if [ ! -z "$RDS_HOSTNAME" ]; then
-  export BASTION_JDBC_URL="jdbc:postgresql://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_HOSTNAME}"
+  export POSTGRESQL_HOSTNAME=$RDS_HOSTNAME
+  export POSTGRESQL_PORT=$RDS_PORT
+  export BASTION_DB=$RDS_HOSTNAME
+
   export BASTION_USER=$RDS_USERNAME
   export BASTION_PWD=$RDS_PASSWORD
 fi
 
+export BASTION_JDBC_URL="jdbc:postgresql://${POSTGRESQL_HOSTNAME}:${POSTGRESQL_PORT:=5432}/${BASTION_DB}?currentSchema=${BASTION_SCHEMA}"
 
 # Avoid running bastion (or any server) as root where possible
 BGID=${BGID:-2000}
@@ -39,7 +42,10 @@ fi
 # Ensure JAR file is world readable
 chmod o+r /app/bastion.jar
 
+# Run Database Migrations
+java  -jar /app/bastion.jar db migrate /app/etc/config.yml
+
 # Launch the application
 # exec is here twice on purpose to  ensure that metabase runs as PID 1 (the init process)
 # and thus receives signals sent to the container. This allows it to shutdown cleanly on exit
-exec su bastion -s /bin/sh -c "exec java $JAVA_OPTS -jar /app/bastion.jar $@"
+exec su bastion -s /bin/sh -c "exec java $JAVA_OPTS -jar /app/bastion.jar server /app/etc/config.yml"

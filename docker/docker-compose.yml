@@ -1,0 +1,20 @@
+version: '3'
+services:
+  bastion:
+    image: tokern/bastion:latest
+    ports:
+      - "3145:3145"
+      - "3146:3146"
+    environment:
+      BASTION_USER: bastion_user
+      BASTION_PWD: passw0rd
+      BASTION_DB: bastiondb
+      BASTION_SCHEMA: app
+      POSTGRESQL_HOSTNAME: postgres
+  postgres:
+    image: "postgres:12.1-alpine"
+    environment:
+      POSTGRES_USER: bastion_user
+      POSTGRES_PASSWORD: passw0rd
+      POSTGRES_DB: bastiondb
+
