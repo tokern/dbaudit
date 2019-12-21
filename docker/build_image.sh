@@ -36,6 +36,7 @@ echo "Building Docker image ${DOCKER_IMAGE} from official Tokern release ${TAG}"
 mkdir -p $BASEDIR
 cp $PROJECT_ROOT/config.yml $BASEDIR
 cp $PROJECT_ROOT/target/bastion.jar $BASEDIR
+cp $PROJECT_ROOT/docker/run_bastion.sh $BASEDIR
 cp -r $PROJECT_ROOT/target/lib $BASEDIR
 
 docker build -t ${DOCKER_IMAGE} -f $PROJECT_ROOT/docker/Dockerfile $BASEDIR
@@ -53,7 +54,7 @@ if [ "$PUBLISH" == "YES" ]; then
 
     if [ "$LATEST" == "YES" ]; then
         # tag our recent versioned image as "latest"
-        docker tag -f ${DOCKER_IMAGE} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}:latest
+        docker tag ${DOCKER_IMAGE} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}:latest
 
         # then push it as well
         docker push ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}:latest
