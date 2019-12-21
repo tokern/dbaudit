@@ -5,6 +5,9 @@ set -e
 PROJECT_ROOT=$(dirname $(dirname $0))
 BASEDIR=$PROJECT_ROOT/target/context
 
+echo $PROJECT_ROOT
+echo $BASEDIR
+
 DOCKERHUB_NAMESPACE=tokern
 
 
