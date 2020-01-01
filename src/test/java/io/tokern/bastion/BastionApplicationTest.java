@@ -4,6 +4,7 @@ import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.tokern.bastion.api.*;
+import io.tokern.bastion.api.Error;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.UserDAO;
@@ -264,6 +265,22 @@ class BastionApplicationTest {
     Database created = response.readEntity(Database.class);
 
     assertEquals("jdbc://localhost/bastion3", created.getJdbcUrl());
+  }
+
+  @Test
+  void errorCreateDuplicateDatabase() {
+    Database database = new Database("BastionDb", "jdbc://localhost/bastion3",
+        "user", "password", "MYSQL", loggedInAdmin.orgId);
+    Entity<?> entity = Entity.entity(database, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/")
+            .request().header("Authorization", "BEARER " + adminToken).post(entity);
+
+    assertEquals(400, response.getStatus());
+    Error error = response.readEntity(Error.class);
+
+    assertEquals("Database with name 'BastionDb' already exists", error.error);
   }
 
   @Test

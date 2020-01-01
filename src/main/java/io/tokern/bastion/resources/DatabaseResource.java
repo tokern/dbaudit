@@ -2,9 +2,11 @@ package io.tokern.bastion.resources;
 
 import io.dropwizard.auth.Auth;
 import io.tokern.bastion.api.Database;
+import io.tokern.bastion.api.Error;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.db.DatabaseDAO;
 import org.jdbi.v3.core.Jdbi;
+import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +26,11 @@ public class DatabaseResource {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseResource.class);
 
   private final Jdbi jdbi;
+  private final DatabaseDAO dao;
 
   public DatabaseResource(final Jdbi jdbi) {
     this.jdbi = jdbi;
+    this.dao = jdbi.onDemand(DatabaseDAO.class);
   }
 
   @PermitAll
@@ -49,7 +53,7 @@ public class DatabaseResource {
   @GET
   @Path("/{databaseId}")
   public Database getDatabase(@Auth User principal, @PathParam("databaseId") final int databaseId) {
-    return jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(databaseId, principal.orgId));
+    return dao.getById(databaseId, principal.orgId);
   }
 
   @DELETE
@@ -60,13 +64,20 @@ public class DatabaseResource {
   }
 
   @POST
-  public Database createDatabase(@Auth User principal, @Valid @NotNull Database database) {
-    Database updated = new Database(
-        database.getId(), database.getName(), database.getJdbcUrl(),
-        database.getUserName(), database.getPassword(), database.getDriverType(), principal.orgId);
+  public Response createDatabase(@Auth User principal, @Valid @NotNull Database database) {
+    if (dao.getByName(database.getName(), principal.orgId) == null) {
+      Database updated = new Database(
+          database.getId(), database.getName(), database.getJdbcUrl(),
+          database.getUserName(), database.getPassword(), database.getDriverType(), principal.orgId);
 
-    Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
-    return jdbi.withExtension(DatabaseDAO.class, dao -> dao.getById(id, principal.orgId));
+      Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
+      return Response.ok().entity(dao.getById(id, principal.orgId)).build();
+    } else {
+      return Response
+          .status(Response.Status.BAD_REQUEST)
+          .entity(new Error(String.format("Database with name '%s' already exists", database.getName())))
+          .build();
+    }
   }
 
   @PUT

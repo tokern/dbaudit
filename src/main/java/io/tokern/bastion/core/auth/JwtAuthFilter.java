@@ -1,8 +1,6 @@
 package io.tokern.bastion.core.auth;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dropwizard.auth.AuthFilter;
-import io.dropwizard.auth.AuthenticationException;
 import io.tokern.bastion.api.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
