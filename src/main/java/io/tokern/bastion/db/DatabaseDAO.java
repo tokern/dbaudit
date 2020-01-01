@@ -37,6 +37,11 @@ public interface DatabaseDAO {
   @RegisterConstructorMapper(Database.class)
   Database getByUrl(String jdbcUrl, int orgId);
 
+  @SqlQuery("select id, name, jdbc_url, user_name, password, type as driver, org_id from dbs " +
+      "where name = ? and org_id = ?")
+  @RegisterConstructorMapper(Database.class)
+  Database getByName(String name, int orgId);
+
   @SqlUpdate("delete from dbs where id=? and org_id = ?")
   void deleteById(long id, int orgId);
 }

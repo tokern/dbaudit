@@ -70,6 +70,12 @@ public class DatabaseDAOTest {
   }
 
   @Test
+  public void selectByName() {
+    Database database = databaseDAO.getByName("bastion_1", 1);
+    assertEquals("jdbc://localhost/bastion_1", database.getJdbcUrl());
+  }
+
+  @Test
   public void update() {
     Database database = databaseDAO.getByUrl("jdbc://localhost/bastion_1", 1);
 
