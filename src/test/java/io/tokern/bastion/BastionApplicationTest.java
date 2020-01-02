@@ -65,7 +65,9 @@ class BastionApplicationTest {
     loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
     updateUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("put@tokern.io"));
 
-    JwtTokenManager tokenManager = new JwtTokenManager(EXTENSION.getConfiguration().getJwtConfiguration().getJwtSecret());
+    JwtTokenManager tokenManager = new JwtTokenManager(
+        EXTENSION.getConfiguration().getJwtConfiguration().getJwtSecret(),
+        EXTENSION.getConfiguration().getJwtConfiguration().getJwtExpirySeconds());
 
     adminToken = tokenManager.generateToken(loggedInAdmin);
     dbAdminToken = tokenManager.generateToken(loggedInDbAdmin);
