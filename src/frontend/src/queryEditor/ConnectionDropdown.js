@@ -28,8 +28,9 @@ function ConnectionDropdown({
   };
 
   const handleConnectionSaved = connection => {
+    console.log(connection);
     addUpdateConnection(connection);
-    selectConnectionId(connection._id);
+    selectConnectionId(connection.id);
     setShowEdit(false);
   };
 

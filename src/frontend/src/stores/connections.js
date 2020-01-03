@@ -3,8 +3,6 @@ import sortBy from 'lodash/sortBy';
 import message from '../common/message';
 import fetchJson from '../utilities/fetch-json.js';
 
-const ONE_HOUR_MS = 1000 * 60 * 60;
-
 function sortConnections(connections) {
   return sortBy(connections, [connection => connection.name.toLowerCase()]);
 }
@@ -61,7 +59,7 @@ export const addUpdateConnection = async (state, connection) => {
 };
 
 export const loadConnections = store => async (state, force) => {
-  const { connections, connectionsLoading, connectionsLastUpdated } = state;
+  const { connections, connectionsLoading } = state;
   if (connectionsLoading) {
     return;
   }
@@ -73,7 +71,6 @@ export const loadConnections = store => async (state, force) => {
   }
   const update = {
     connectionsLoading: false,
-    connectionsLastUpdated: new Date(),
     connections: sortConnections(databases)
   };
 

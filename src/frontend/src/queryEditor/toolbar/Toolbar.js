@@ -27,7 +27,6 @@ import {
 } from '../../stores/queries';
 import { toggleSchema } from '../../stores/schema';
 import UserList from '../../users/UserList';
-import fetchJson from '../../utilities/fetch-json.js';
 import ConnectionDropDown from '../ConnectionDropdown';
 import AboutModal from './AboutModal';
 import QueryListButton from './QueryListButton';
