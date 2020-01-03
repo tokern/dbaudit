@@ -20,7 +20,7 @@ function AboutContent({ version }) {
         }}
       >
         <a
-          href="http://rickbergfalk.github.io/sqlpad/"
+          href="https://tokern.io/bastion"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -28,7 +28,7 @@ function AboutContent({ version }) {
           Project page <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/rickbergfalk/sqlpad/issues"
+          href="https://github.com/tokern/bastion/issues"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -36,7 +36,7 @@ function AboutContent({ version }) {
           Submit an Issue <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/rickbergfalk/sqlpad/blob/master/CHANGELOG.md"
+          href="https://github.com/tokern/bastion/releases"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -44,7 +44,7 @@ function AboutContent({ version }) {
           Changelog <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/rickbergfalk/sqlpad"
+          href="https://github.com/tokern/bastion"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}

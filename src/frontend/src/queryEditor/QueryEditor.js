@@ -9,8 +9,6 @@ import { loadConnections } from '../stores/connections';
 import { loadQuery, resetNewQuery } from '../stores/queries';
 import { loadTags } from '../stores/tags';
 import DocumentTitle from './DocumentTitle';
-import QueryEditorChart from './QueryEditorChart';
-import QueryEditorChartToolbar from './QueryEditorChartToolbar';
 import QueryEditorResult from './QueryEditorResult';
 import QueryEditorSqlEditor from './QueryEditorSqlEditor';
 import QueryResultHeader from './QueryResultHeader.js';
@@ -57,11 +55,6 @@ function QueryEditor(props) {
       onChange={handleVisPaneResize}
     >
       <QueryEditorSqlEditor />
-      <div style={{ position: 'absolute' }} className="h-100 w-100">
-        <QueryEditorChartToolbar>
-          <QueryEditorChart />
-        </QueryEditorChartToolbar>
-      </div>
     </SplitPane>
   ) : (
     <QueryEditorSqlEditor />
