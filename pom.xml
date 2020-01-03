@@ -30,6 +30,7 @@
         <flyway.version>6.1.0</flyway.version>
         <h2.version>1.4.194</h2.version>
         <hikari.version>3.4.1</hikari.version>
+        <jasypt.version>1.9.3</jasypt.version>
         <jdbi.version>3.11.1</jdbi.version>
         <junit.version>5.5.2</junit.version>
         <jwt.version>3.8.3</jwt.version>
@@ -99,6 +100,13 @@
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>${jwt.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jasypt</groupId>
+            <artifactId>jasypt</artifactId>
+            <version>${jasypt.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

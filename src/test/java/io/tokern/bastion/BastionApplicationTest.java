@@ -267,6 +267,8 @@ class BastionApplicationTest {
     Database created = response.readEntity(Database.class);
 
     assertEquals("jdbc://localhost/bastion3", created.getJdbcUrl());
+    assertEquals("password",
+        Database.decryptPassword(created.getPassword(), EXTENSION.getConfiguration().getEncryptionSecret()));
   }
 
   @Test
@@ -310,6 +312,23 @@ class BastionApplicationTest {
     Database updated = response.readEntity(Database.class);
 
     assertEquals("tokern", updated.getUserName());
+  }
+
+  @Test
+  void updateDatabasePassword() {
+    Database.UpdateRequest request = new Database.UpdateRequest();
+    request.setPassword("updated_password");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/1")
+            .request().header("Authorization", "BEARER " + dbAdminToken).put(entity);
+
+    assertEquals(200, response.getStatus());
+    Database updated = response.readEntity(Database.class);
+
+    assertEquals("updated_password",
+        Database.decryptPassword(updated.getPassword(), EXTENSION.getConfiguration().getEncryptionSecret()));
   }
 
   @Test

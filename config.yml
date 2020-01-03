@@ -18,6 +18,8 @@ database:
   password: ${BASTION_PWD:-}
   url: ${BASTION_JDBC_URL:-}
 
+encryptionSecret: ${BASTION_ENCRYPTION_PASSWORD:-}
+
 flyway:
   schemas:
     - ${BASTION_SCHEMA:-}

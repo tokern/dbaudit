@@ -6,7 +6,6 @@ import io.tokern.bastion.api.Error;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.db.DatabaseDAO;
 import org.jdbi.v3.core.Jdbi;
-import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +26,12 @@ public class DatabaseResource {
 
   private final Jdbi jdbi;
   private final DatabaseDAO dao;
+  private final String encryptionSecret;
 
-  public DatabaseResource(final Jdbi jdbi) {
+  public DatabaseResource(final Jdbi jdbi, String encryptionSecret) {
     this.jdbi = jdbi;
     this.dao = jdbi.onDemand(DatabaseDAO.class);
+    this.encryptionSecret = encryptionSecret;
   }
 
   @PermitAll
@@ -68,7 +69,9 @@ public class DatabaseResource {
     if (dao.getByName(database.getName(), principal.orgId) == null) {
       Database updated = new Database(
           database.getId(), database.getName(), database.getJdbcUrl(),
-          database.getUserName(), database.getPassword(), database.getDriverType(), principal.orgId);
+          database.getUserName(),
+          Database.encryptPassword(database.getPassword(), this.encryptionSecret),
+          database.getDriverType(), principal.orgId);
 
       Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
       return Response.ok().entity(dao.getById(id, principal.orgId)).build();
@@ -92,7 +95,8 @@ public class DatabaseResource {
           request.getName() != null ? request.getName() : inDb.getName(),
           request.getJdbcUrl() != null ? request.getJdbcUrl() : inDb.getJdbcUrl(),
           request.getUserName() != null ? request.getUserName() : inDb.getJdbcUrl(),
-          request.getPassword() != null ? request.getPassword() : inDb.getPassword(),
+          request.getPassword() != null ? Database.encryptPassword(request.getPassword(), this.encryptionSecret)
+              : inDb.getPassword(),
           request.getType() != null ? Database.Driver.valueOf(request.getType()) : inDb.getDriverType(),
           inDb.getOrgId()
       );

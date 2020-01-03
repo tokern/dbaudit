@@ -18,6 +18,8 @@ database:
   # the JDBC URL
   url: jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app
 
+encryptionSecret: s00p3rs3cr3t
+
 flyway:
   schemas:
     - bastion_app

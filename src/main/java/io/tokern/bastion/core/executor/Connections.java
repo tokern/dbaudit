@@ -22,11 +22,13 @@ public class Connections implements Managed {
   private Map<Long, HikariDataSource> dataSourceMap;
   private final HealthCheckRegistry checkRegistry;
   private final MetricRegistry metricRegistry;
+  private final String encryptionSecret;
 
-  public Connections(HealthCheckRegistry checkRegistry, MetricRegistry metricRegistry) {
+  public Connections(HealthCheckRegistry checkRegistry, MetricRegistry metricRegistry, String encryptionSecret) {
     dataSourceMap = new HashMap<>();
     this.checkRegistry = checkRegistry;
     this.metricRegistry = metricRegistry;
+    this.encryptionSecret = encryptionSecret;
   }
 
   @Override
@@ -43,7 +45,7 @@ public class Connections implements Managed {
           database.getId(), database.getJdbcUrl()));
     }
 
-    DataSource dataSource = database.getDataSource();
+    DataSource dataSource = database.getDataSource(encryptionSecret);
 
     P6DataSource p6DataSource = new P6DataSource(dataSource);
 
@@ -73,6 +75,4 @@ public class Connections implements Managed {
       throw new NotFoundException(String.format("DataSource with id %d not found", id));
     }
   }
-
-
 }

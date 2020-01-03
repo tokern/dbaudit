@@ -27,6 +27,10 @@ public class BastionConfiguration extends Configuration {
   @NotNull
   private FEConfiguration feConfiguration = new FEConfiguration();
 
+  @Valid
+  @NotNull
+  private String encryptionSecret;
+
   @JsonProperty("database")
   public void setDataSourceFactory(DataSourceFactory factory) {
     this.database = factory;
@@ -65,5 +69,15 @@ public class BastionConfiguration extends Configuration {
   @JsonProperty("fe")
   public void setFeConfiguration(FEConfiguration feConfiguration) {
     this.feConfiguration = feConfiguration;
+  }
+
+  @JsonProperty("encryptionSecret")
+  public String getEncryptionSecret() {
+    return encryptionSecret;
+  }
+
+  @JsonProperty("encryptionSecret")
+  public void setEncryptionSecret(String encryptionSecret) {
+    this.encryptionSecret = encryptionSecret;
   }
 }

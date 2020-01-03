@@ -61,4 +61,15 @@ class DatabaseTest {
     Database.DatabaseList list = objectMapper.readValue(json, Database.DatabaseList.class);
     assertEquals(2, list.databases.size());
   }
+
+  @Test
+  void passwordEncryptionTest() {
+    String password = "passw0rd";
+    String secret = "s00p3rS3cr3t";
+
+    String encrypted = Database.encryptPassword(password, secret);
+    String decrypted = Database.decryptPassword(encrypted, secret);
+
+    assertEquals(password, decrypted);
+  }
 }
