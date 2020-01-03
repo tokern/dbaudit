@@ -6,8 +6,9 @@ import Input from './common/Input';
 import message from './common/message';
 import Spacer from './common/Spacer';
 import fetchJson from './utilities/fetch-json.js';
+import {refreshAppContext} from "./stores/config";
 
-function Register({ adminRegistrationOpen }) {
+function Register({ adminRegistrationOpen, refreshAppContext }) {
   const [displayName, setDisplayName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,11 +32,12 @@ function Register({ adminRegistrationOpen }) {
     if (json.error) {
       return message.error(json.error);
     }
+    await refreshAppContext();
     setRedirect(true);
   };
 
   if (redirect) {
-    return <Redirect to="/" />;
+    return <Redirect to={{ pathname: '/' }} />;
   }
 
   return (
@@ -99,4 +101,4 @@ function Register({ adminRegistrationOpen }) {
   );
 }
 
-export default connect(['adminRegistrationOpen'])(Register);
+export default connect(['adminRegistrationOpen'], {refreshAppContext})(Register);
