@@ -6,12 +6,10 @@ import { Redirect } from 'react-router-dom';
 import { getUserToken } from "./stores/user";
 
 function Authenticated({ children, adminRegistrationOpen, token, refreshAppContext }) {
+  if (adminRegistrationOpen) {
+    return <Redirect to={{pathname: '/register'}}/>;
+  }
   if (token === undefined) {
-    refreshAppContext();
-
-    if (adminRegistrationOpen) {
-      return <Redirect to={{pathname: '/register'}}/>;
-    }
     return <Redirect to={{ pathname: '/signin' }} />;
   }
 
