@@ -17,7 +17,7 @@ function AboutModal({ version, visible, onClose }) {
     <>
       <Modal
         width={650}
-        title="About SQLPad"
+        title="About Tokern Bastion"
         visible={visible}
         onClose={onClose}
       >

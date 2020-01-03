@@ -30,7 +30,6 @@ import UserList from '../../users/UserList';
 import fetchJson from '../../utilities/fetch-json.js';
 import ConnectionDropDown from '../ConnectionDropdown';
 import AboutModal from './AboutModal';
-import ChartButton from './ChartButton';
 import QueryListButton from './QueryListButton';
 import QueryTagsModal from './QueryTagsModal';
 import {signOut} from "../../stores/user";
@@ -194,8 +193,6 @@ function Toolbar({
         </Button>
 
         <Spacer />
-
-        <ChartButton />
 
         <Spacer grow />
 
