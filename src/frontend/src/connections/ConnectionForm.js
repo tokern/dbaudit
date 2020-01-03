@@ -21,7 +21,6 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
   const [testSuccess, setTestSuccess] = useState(false);
 
   async function getDrivers() {
-    console.log(token);
     const json = await fetchJson('GET', '/api/databases/drivers', undefined, token);
     if (json.error) {
       message.error(json.error);
@@ -89,7 +88,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
       setSaving(false);
       return message.error(json.error);
     }
-    return onConnectionSaved(json.connection);
+    return onConnectionSaved(json);
   };
 
   const renderDriverFields = () => {
