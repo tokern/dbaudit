@@ -8,6 +8,8 @@ import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.auth.PasswordDigest;
 import io.tokern.bastion.db.UserDAO;
 import org.jdbi.v3.core.Jdbi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -19,12 +21,23 @@ import javax.ws.rs.core.Response;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource {
+  private static final Logger logger = LoggerFactory.getLogger(UserResource.class);
+
   private final Jdbi jdbi;
   private final JwtTokenManager jwtTokenManager;
 
   public UserResource(Jdbi jdbi, JwtTokenManager jwtTokenManager) {
     this.jdbi = jdbi;
     this.jwtTokenManager = jwtTokenManager;
+  }
+
+  @RolesAllowed("ADMIN")
+  @GET
+  public User.UserList list(@Auth User principal) {
+    User.UserList list = new User.UserList(
+        jdbi.withExtension(UserDAO.class, dao -> dao.listByOrg(principal.orgId)));
+    logger.debug("Returning list of size: " + list.users.size() + " for org: " + principal.orgId);
+    return list;
   }
 
   @PermitAll

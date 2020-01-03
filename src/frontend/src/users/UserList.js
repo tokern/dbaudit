@@ -10,19 +10,19 @@ import fetchJson from '../utilities/fetch-json.js';
 import EditUserForm from './EditUserForm';
 import InviteUserForm from './InviteUserForm';
 
-function UserList({ currentUser }) {
+function UserList({ currentUser, token }) {
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [editUser, setEditUser] = useState(null);
 
   const loadUsersFromServer = async () => {
-    const json = await fetchJson('GET', '/api/users');
+    const json = await fetchJson('GET', '/api/users', undefined, token);
     if (json.error) {
       message.error(json.error);
     }
     if (json.users) {
       const users = json.users.map(user => {
-        user.key = user._id;
+        user.key = user.id;
         return user;
       });
       setUsers(users);
@@ -30,7 +30,7 @@ function UserList({ currentUser }) {
   };
 
   useEffect(() => {
-    document.title = 'SQLPad - Users';
+    document.title = 'Bastion - Users';
     loadUsersFromServer();
   }, []);
 
@@ -62,7 +62,7 @@ function UserList({ currentUser }) {
       {users.map(user => {
         const actions = [];
 
-        if (currentUser && currentUser._id !== user._id) {
+        if (currentUser && currentUser.id !== user.id) {
           actions.push(
             <Button
               key="edit"
@@ -91,7 +91,7 @@ function UserList({ currentUser }) {
         );
 
         return (
-          <ListItem key={user._id}>
+          <ListItem key={user.id}>
             <div style={{ flexGrow: 1, padding: 8 }}>
               {user.email}
               <br />
@@ -128,4 +128,4 @@ function UserList({ currentUser }) {
   );
 }
 
-export default connect(['currentUser'])(React.memo(UserList));
+export default connect(['currentUser', 'token'])(React.memo(UserList));

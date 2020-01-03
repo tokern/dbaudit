@@ -98,6 +98,19 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
   }
 
+  @Order(1)
+  @Test
+  void listUsers() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/")
+            .request().header("Authorization", "BEARER " + adminToken).get();
+
+    assertEquals(200, response.getStatus());
+    User.UserList list = response.readEntity(User.UserList.class);
+
+    assertEquals(4, list.users.size());
+  }
+
   @Test
   void loginTest() {
     LoginRequest request = new LoginRequest("root@tokern.io", "passw0rd");
