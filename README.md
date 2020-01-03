@@ -2,6 +2,13 @@
 Tokern Bastion provides secure and seamless access to production databases in 
 AWS and GCP for operations and support teams.
 
+![Bastion Query UI](Screenshot.png?raw=true "Bastion Query UI")
+
+Security teams get a single pane for privileged access management for all production databases.
+
+[![CircleCI](https://circleci.com/gh/tokern/bastion.svg?style=svg)](https://circleci.com/gh/tokern/bastion)
+[![codecov](https://codecov.io/gh/tokern/bastion/branch/master/graph/badge.svg)](https://codecov.io/gh/tokern/bastion)
+
 # Features
 
 - User Experience tailor made for operations and support teams.
@@ -49,5 +56,8 @@ own database, setup environment variables and use `docker run`.
 # Next Steps
 Visit http://localhost:3145 to start using the application.
 
-Visit Getting Started documentation to start using Bastion to protect 
-databases.
+# Documentation
+Visit [Bastion documentation](https://tokern.io/docs/bastion) to deploy and use in 
+production to protect databases in AWS, GCP or your data center.
+
+Visit [Bastion - Database Privileged Access Management](https://tokern.io/bastion) page for features and use cases. 
