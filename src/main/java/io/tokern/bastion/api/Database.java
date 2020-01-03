@@ -5,6 +5,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import org.h2.jdbcx.JdbcDataSource;
+import org.jasypt.util.text.AES256TextEncryptor;
 import org.jdbi.v3.core.mapper.reflect.ColumnName;
 import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 import org.mariadb.jdbc.MariaDbDataSource;
@@ -158,34 +159,48 @@ public class Database {
   }
 
   @JsonIgnore
-  public DataSource getDataSource() throws IllegalArgumentException, SQLException {
+  public DataSource getDataSource(String encryptionSecret) throws IllegalArgumentException, SQLException {
     if (driver == Driver.H2) {
       JdbcDataSource dataSource = new JdbcDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
-      dataSource.setPassword(this.password);
+      dataSource.setPassword(Database.decryptPassword(this.password, encryptionSecret));
       return dataSource;
     } else if (driver == Driver.POSTGRESQL) {
       PGSimpleDataSource dataSource = new PGSimpleDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
-      dataSource.setPassword(this.password);
+      dataSource.setPassword(Database.decryptPassword(this.password, encryptionSecret));
       return dataSource;
     } else if (driver == Driver.MYSQL) {
       MysqlDataSource dataSource = new MysqlDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
-      dataSource.setPassword(this.password);
+      dataSource.setPassword(Database.decryptPassword(this.password, encryptionSecret));
       return dataSource;
     } else if (driver == Driver.MARIADB) {
       MariaDbDataSource dataSource = new MariaDbDataSource();
       dataSource.setUrl(this.jdbcUrl);
       dataSource.setUser(this.userName);
-      dataSource.setPassword(this.password);
+      dataSource.setPassword(Database.decryptPassword(this.password, encryptionSecret));
       return dataSource;
     }
 
     throw new IllegalArgumentException(String.format("%s database is not supported", driver));
+  }
+
+  @JsonIgnore
+  public static String encryptPassword(String password, String secret) {
+    AES256TextEncryptor textEncryptor = new AES256TextEncryptor();
+    textEncryptor.setPassword(secret);
+    return textEncryptor.encrypt(password);
+  }
+
+  @JsonIgnore
+  public static String decryptPassword(String password, String secret) {
+    AES256TextEncryptor textEncryptor = new AES256TextEncryptor();
+    textEncryptor.setPassword(secret);
+    return textEncryptor.decrypt(password);
   }
 
   public static class DatabaseList {

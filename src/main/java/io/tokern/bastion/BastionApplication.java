@@ -92,7 +92,8 @@ public class BastionApplication extends Application<BastionConfiguration> {
       final JdbiFactory factory = new JdbiFactory();
       final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
-      final Connections connections = new Connections(environment.healthChecks(), environment.metrics());
+      final Connections connections = new Connections(environment.healthChecks(), environment.metrics(),
+          configuration.getEncryptionSecret());
       environment.lifecycle().manage(connections);
       this.addDatabases(jdbi, connections);
 
@@ -116,7 +117,7 @@ public class BastionApplication extends Application<BastionConfiguration> {
           .build();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
-      environment.jersey().register(new DatabaseResource(jdbi));
+      environment.jersey().register(new DatabaseResource(jdbi, configuration.getEncryptionSecret()));
 
       environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class), jdbi.onDemand(DatabaseDAO.class),
           connections, threadPool, resultCache));

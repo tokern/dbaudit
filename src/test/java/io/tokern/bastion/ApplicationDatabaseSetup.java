@@ -68,7 +68,7 @@ class ApplicationDatabaseSetup extends DropwizardAppExtension.ServiceListener<Ba
         "BastionDb",
         "jdbc:postgresql://localhost/bastiondb?currentSchema=bastion_app",
         "bastion",
-        "passw0rd",
+        Database.encryptPassword("passw0rd", configuration.getEncryptionSecret()),
         "POSTGRESQL",
         orgId.intValue()
     )));
@@ -77,7 +77,7 @@ class ApplicationDatabaseSetup extends DropwizardAppExtension.ServiceListener<Ba
         "Bastion2",
         "jdbc://localhost/bastion2",
         "bastion_user",
-        "bastion_password",
+        Database.encryptPassword("bastion_password", configuration.getEncryptionSecret()),
         "MYSQL",
         orgId.intValue()
     )));

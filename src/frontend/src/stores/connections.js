@@ -66,29 +66,22 @@ export const loadConnections = store => async (state, force) => {
     return;
   }
 
-  if (
-    force ||
-    !connections.length ||
-    (connectionsLastUpdated &&
-      new Date() - connectionsLastUpdated > ONE_HOUR_MS)
-  ) {
-    store.setState({ connectionsLoading: true });
-    const { error, databases } = await fetchJson('GET', '/api/databases/', undefined, state.token);
-    if (error) {
-      message.error(error);
-    }
-    const update = {
-      connectionsLoading: false,
-      connectionsLastUpdated: new Date(),
-      connections: sortConnections(databases)
-    };
-
-    if (connections && connections.length === 1) {
-      update.selectedConnectionId = connections[0].id;
-    }
-
-    store.setState(update);
+  store.setState({ connectionsLoading: true });
+  const { error, databases } = await fetchJson('GET', '/api/databases/', undefined, state.token);
+  if (error) {
+    message.error(error);
   }
+  const update = {
+    connectionsLoading: false,
+    connectionsLastUpdated: new Date(),
+    connections: sortConnections(databases)
+  };
+
+  if (connections && connections.length === 1) {
+    update.selectedConnectionId = connections[0].id;
+  }
+
+  store.setState(update);
 };
 
 export default {
