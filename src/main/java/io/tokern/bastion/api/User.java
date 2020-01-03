@@ -9,6 +9,7 @@ import org.jdbi.v3.core.mapper.reflect.JdbiConstructor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.List;
 
 public class User implements Principal {
   public enum SystemRoles {
@@ -67,6 +68,15 @@ public class User implements Principal {
   @Override
   public String getName() {
     return name;
+  }
+
+  public static class UserList {
+    public final List<User> users;
+
+    @JsonCreator
+    public UserList(@JsonProperty("users") List<User> users) {
+      this.users = users;
+    }
   }
 
   public static class Request {
