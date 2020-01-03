@@ -236,7 +236,7 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     Database.DatabaseList list = response.readEntity(Database.DatabaseList.class);
 
-    assertEquals(2, list.databases.size());
+    assertEquals(3, list.databases.size());
   }
 
   @ParameterizedTest
@@ -301,34 +301,30 @@ class BastionApplicationTest {
   @Test
   void updateDatabase() {
     Database.UpdateRequest request = new Database.UpdateRequest();
-    request.setUserName("tokern");
+    request.setUserName("bastion");
+    request.setPassword("passw0rd");
     Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
 
     final Response response =
-        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/1")
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/3")
             .request().header("Authorization", "BEARER " + dbAdminToken).put(entity);
 
     assertEquals(200, response.getStatus());
     Database updated = response.readEntity(Database.class);
 
-    assertEquals("tokern", updated.getUserName());
-  }
-
-  @Test
-  void updateDatabasePassword() {
-    Database.UpdateRequest request = new Database.UpdateRequest();
-    request.setPassword("updated_password");
-    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
-
-    final Response response =
-        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/databases/1")
-            .request().header("Authorization", "BEARER " + dbAdminToken).put(entity);
-
-    assertEquals(200, response.getStatus());
-    Database updated = response.readEntity(Database.class);
-
-    assertEquals("updated_password",
+    assertEquals("bastion", updated.getUserName());
+    assertEquals("passw0rd",
         Database.decryptPassword(updated.getPassword(), EXTENSION.getConfiguration().getEncryptionSecret()));
+
+    // Test that connections is updated
+    Query.RunQueryRequest query = new Query.RunQueryRequest("SELECT 1 as ONE", 3);
+    Entity<?> queryRequestEntity = Entity.entity(query, MediaType.APPLICATION_JSON);
+
+    final Response queryResponse =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/queries/run")
+            .request().header("Authorization", "BEARER " + dbAdminToken).post(queryRequestEntity);
+
+    assertEquals(200, queryResponse.getStatus());
   }
 
   @Test
@@ -341,7 +337,7 @@ class BastionApplicationTest {
     List<Query> queries = response.readEntity(new GenericType<List<Query>>() {});
 
     // 1 extra because of runQuery
-    assertEquals(3, queries.size());
+    assertEquals(4, queries.size());
   }
 
   @Test

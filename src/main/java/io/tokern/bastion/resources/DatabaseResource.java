@@ -4,6 +4,7 @@ import io.dropwizard.auth.Auth;
 import io.tokern.bastion.api.Database;
 import io.tokern.bastion.api.Error;
 import io.tokern.bastion.api.User;
+import io.tokern.bastion.core.executor.Connections;
 import io.tokern.bastion.db.DatabaseDAO;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 @Path("/databases")
@@ -27,11 +29,13 @@ public class DatabaseResource {
   private final Jdbi jdbi;
   private final DatabaseDAO dao;
   private final String encryptionSecret;
+  private final Connections connections;
 
-  public DatabaseResource(final Jdbi jdbi, String encryptionSecret) {
+  public DatabaseResource(final Jdbi jdbi, String encryptionSecret, Connections connections) {
     this.jdbi = jdbi;
     this.dao = jdbi.onDemand(DatabaseDAO.class);
     this.encryptionSecret = encryptionSecret;
+    this.connections = connections;
   }
 
   @PermitAll
@@ -73,8 +77,16 @@ public class DatabaseResource {
           Database.encryptPassword(database.getPassword(), this.encryptionSecret),
           database.getDriverType(), principal.orgId);
 
-      Long id = jdbi.withExtension(DatabaseDAO.class, dao -> dao.insert(updated));
-      return Response.ok().entity(dao.getById(id, principal.orgId)).build();
+      Long id = dao.insert(updated);
+      Database created = dao.getById(id, principal.orgId);
+      try {
+        connections.addDatabase(created);
+        return Response.ok().entity(created).build();
+      } catch (SQLException exception) {
+        return Response
+            .status(Response.Status.BAD_REQUEST)
+            .entity(new Error(exception.getMessage())).build();
+      }
     } else {
       return Response
           .status(Response.Status.BAD_REQUEST)
@@ -101,9 +113,16 @@ public class DatabaseResource {
           inDb.getOrgId()
       );
       jdbi.useExtension(DatabaseDAO.class, dao -> dao.update(updated));
-      return Response.ok(updated).build();
+      try {
+        connections.deleteDataSource(updated.getId());
+        connections.addDatabase(updated);
+        return Response.ok(updated).build();
+      } catch (SQLException exception) {
+        return Response
+            .status(Response.Status.BAD_REQUEST)
+            .entity(new Error(exception.getMessage())).build();
+      }
     }
-
     return Response.status(Response.Status.NOT_FOUND).build();
   }
 }

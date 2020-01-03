@@ -117,7 +117,7 @@ public class BastionApplication extends Application<BastionConfiguration> {
           .build();
 
       environment.jersey().register(new UserResource(jdbi, tokenManager));
-      environment.jersey().register(new DatabaseResource(jdbi, configuration.getEncryptionSecret()));
+      environment.jersey().register(new DatabaseResource(jdbi, configuration.getEncryptionSecret(), connections));
 
       environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class), jdbi.onDemand(DatabaseDAO.class),
           connections, threadPool, resultCache));

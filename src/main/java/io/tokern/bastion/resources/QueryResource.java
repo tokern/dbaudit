@@ -115,8 +115,8 @@ public class QueryResource {
     } catch (InterruptedException | NotFoundException exception) {
       return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE)
           .entity(exception.getMessage()).build();
+    }
   }
-}
 
   @POST
   public Response createQuery(@Auth User principal, @Valid @NotNull Query.RunQueryRequest request) {

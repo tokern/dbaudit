@@ -50,10 +50,11 @@ public class Connections implements Managed {
     P6DataSource p6DataSource = new P6DataSource(dataSource);
 
     HikariDataSource hikari = new HikariDataSource();
-    hikari.setDataSource(p6DataSource);
-    hikari.setMaximumPoolSize(maxPoolSize);
+    hikari.setPoolName(database.getName());
     hikari.setHealthCheckRegistry(this.checkRegistry);
     hikari.setMetricRegistry(this.metricRegistry);
+    hikari.setDataSource(p6DataSource);
+    hikari.setMaximumPoolSize(maxPoolSize);
 
     dataSourceMap.put(database.getId(), hikari);
     logger.info(String.format("Inserted database (%d)", database.getId()));
