@@ -2,6 +2,15 @@ logging:
   level: INFO
   loggers:
     io.tokern: DEBUG
+    p6spy:
+      level: INFO
+      additive: false
+      appenders:
+        - type: file
+          currentLogFilename: /tmp/spy.log
+          archivedLogFilenamePattern: /tmp/spy-%d.log.gz
+          archivedFileCount: 5
+
 server:
   rootPath: /api
 
