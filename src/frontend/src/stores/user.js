@@ -6,6 +6,10 @@ export const setUserToken = (state, loginResponse) => {
     return {token: loginResponse.token, currentUser: loginResponse.user}
 };
 
+export const signOut = (state) => {
+    return {token: undefined, currentUser: undefined}
+};
+
 export function getUserToken(store) {
     console.log(store);
     const { token } = store.getState();
@@ -15,5 +19,6 @@ export function getUserToken(store) {
 export default {
     initialState,
     setUserToken,
-    getUserToken
+    getUserToken,
+    signOut
 };

@@ -33,6 +33,7 @@ import AboutModal from './AboutModal';
 import ChartButton from './ChartButton';
 import QueryListButton from './QueryListButton';
 import QueryTagsModal from './QueryTagsModal';
+import {signOut} from "../../stores/user";
 
 const growSpacerStyle = { flexShrink: 0, flexGrow: 1, width: 8 };
 const spacerStyle = { flexShrink: 0, width: 8 };
@@ -65,7 +66,8 @@ const ConnectedEditorNavBar = connect(
     saveQuery: saveQuery(store),
     handleCloneClick,
     resetNewQuery,
-    setQueryState
+    setQueryState,
+    signOut
   })
 )(React.memo(Toolbar));
 
@@ -83,7 +85,8 @@ function Toolbar({
   setQueryState,
   showValidation,
   toggleSchema,
-  unsavedChanges
+  unsavedChanges,
+    signOut
 }) {
   const [showTags, setShowTags] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
@@ -206,7 +209,7 @@ function Toolbar({
           </MenuItem>
           <MenuItem
             onSelect={async () => {
-              await fetchJson('GET', '/api/signout');
+              signOut();
               setRedirectToSignIn(true);
             }}
           >
