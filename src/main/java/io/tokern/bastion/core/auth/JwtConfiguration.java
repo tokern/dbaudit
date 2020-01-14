@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class JwtConfiguration {
   private String jwtSecret = "secret";
   private int jwtExpirySeconds = 3600;
-  private String cookieName = "jwtTokern";
+  private String cookieName = "refreshTokern";
+  private int refreshTokenExpirySeconds = 3600 * 24 * 7 ;
 
   @JsonProperty
   public String getJwtSecret() {
@@ -32,5 +33,16 @@ public class JwtConfiguration {
 
   public void setCookieName(final String cookieName) {
     this.cookieName = cookieName;
+  }
+
+
+  @JsonProperty
+  public int getRefreshTokenExpirySeconds() {
+    return refreshTokenExpirySeconds;
+  }
+
+  @JsonProperty
+  public void setRefreshTokenExpirySeconds(int refreshTokenExpirySeconds) {
+    this.refreshTokenExpirySeconds = refreshTokenExpirySeconds;
   }
 }

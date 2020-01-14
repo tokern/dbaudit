@@ -3,9 +3,11 @@ package io.tokern.bastion.resources;
 import io.dropwizard.auth.Auth;
 import io.tokern.bastion.api.LoginRequest;
 import io.tokern.bastion.api.LoginResponse;
+import io.tokern.bastion.api.RefreshTokenUser;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.core.auth.PasswordDigest;
+import io.tokern.bastion.core.auth.RefreshTokenManager;
 import io.tokern.bastion.db.UserDAO;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
@@ -25,10 +27,12 @@ public class UserResource {
 
   private final Jdbi jdbi;
   private final JwtTokenManager jwtTokenManager;
+  private final RefreshTokenManager refreshTokenManager;
 
-  public UserResource(Jdbi jdbi, JwtTokenManager jwtTokenManager) {
+  public UserResource(Jdbi jdbi, JwtTokenManager jwtTokenManager, RefreshTokenManager refreshTokenManager) {
     this.jdbi = jdbi;
     this.jwtTokenManager = jwtTokenManager;
+    this.refreshTokenManager = refreshTokenManager;
   }
 
   @RolesAllowed("ADMIN")
@@ -62,7 +66,10 @@ public class UserResource {
 
     if (user != null) {
       if (user.login(loginRequest.password)) {
-        return Response.ok(new LoginResponse(jwtTokenManager.generateToken(user), user)).build();
+        return Response.ok(
+            new LoginResponse(jwtTokenManager.generateToken(user), user))
+            .cookie(refreshTokenManager.generateCookie(user))
+            .build();
       }
     }
 
@@ -85,8 +92,8 @@ public class UserResource {
   @PermitAll
   @Path("/refreshJWT")
   @GET
-  public Response refreshJWT(@Auth final User principal) {
-    return Response.ok(new LoginResponse(jwtTokenManager.generateToken(principal), principal)).build();
+  public Response refreshJWT(@Auth final RefreshTokenUser principal) {
+    return Response.ok(new LoginResponse(jwtTokenManager.generateToken(principal.user), principal.user)).build();
   }
 
   @RolesAllowed("ADMIN")

@@ -19,11 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
@@ -124,6 +123,13 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     assertNotNull(loginResponse);
     assertFalse(loginResponse.token.isEmpty());
+
+    Map<String, NewCookie> cookies = response.getCookies();
+    assertEquals(1, cookies.size());
+    assertTrue(cookies.containsKey("refreshTokern"));
+
+    NewCookie cookie = cookies.get("refreshTokern");
+    assertNotNull(cookie.getValue());
   }
 
   @Test
@@ -192,14 +198,40 @@ class BastionApplicationTest {
   @ParameterizedTest
   @MethodSource("provideUsersAndTokens")
   void refreshToken(User caller, String token) {
-    final Response response =
-        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
-        .request().header("Authorization", "BEARER " + token).get();
+    LoginRequest request = new LoginRequest(caller.email, "passw0rd");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
 
-    String refreshed = response.readEntity(String.class);
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/login")
+            .request().post(entity);
+    LoginResponse loginResponse = response.readEntity(LoginResponse.class);
 
     assertEquals(200, response.getStatus());
+
+    Map<String, NewCookie> cookies = response.getCookies();
+    assertEquals(1, cookies.size());
+    assertTrue(cookies.containsKey("refreshTokern"));
+
+    NewCookie cookie = cookies.get("refreshTokern");
+    assertNotNull(cookie.getValue());
+
+    final Response refreshResponse =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
+        .request().cookie(cookie.toCookie()).get();
+
+    String refreshed = refreshResponse.readEntity(String.class);
+
+    assertEquals(200, refreshResponse.getStatus());
     assertNotNull(refreshed);
+  }
+
+  @Test
+  void failRefreshwithJwt() {
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
+            .request().header("Authorization", "BEARER " + userToken).get();
+
+    assertEquals(401, response.getStatus());
   }
 
   @Test
