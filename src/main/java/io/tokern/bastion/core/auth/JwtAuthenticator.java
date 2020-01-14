@@ -9,7 +9,6 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dropwizard.auth.Authenticator;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.db.UserDAO;
-import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,17 +22,17 @@ public class JwtAuthenticator implements Authenticator<String, User> {
   private final Algorithm algorithm;
   private final JWTVerifier jwtVerifier;
   private final String issuer = "bastion";
-  private final Jdbi jdbi;
+  private final UserDAO userDAO;
 
   @Inject
-  public JwtAuthenticator(final String secret, final Jdbi jdbi) {
+  public JwtAuthenticator(final String secret, final UserDAO userDAO) {
     algorithm = Algorithm.HMAC256(secret);
 
     jwtVerifier = JWT.require(algorithm)
         .withIssuer(issuer)
         .build();
 
-    this.jdbi = jdbi;
+    this.userDAO = userDAO;
   }
 
   @Override
@@ -58,7 +57,7 @@ public class JwtAuthenticator implements Authenticator<String, User> {
       LOGGER.warn("Failed JWT token verification");
       return Optional.empty();
     }
-    User user = this.jdbi.withExtension(UserDAO.class, dao -> dao.getById(id.asInt(), orgId.asInt()));
+    User user = this.userDAO.getById(id.asInt(), orgId.asInt());
 
     if (user == null
         || !user.name.equals(name.asString())

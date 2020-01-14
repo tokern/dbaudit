@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.arteam.jdbi3.JdbiFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.auth.AuthDynamicFeature;
-import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.*;
+import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
@@ -15,19 +18,20 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.tokern.bastion.api.Database;
 import io.tokern.bastion.api.GitState;
+import io.tokern.bastion.api.RefreshTokenUser;
 import io.tokern.bastion.api.User;
 import io.tokern.bastion.core.Flyway.FlywayBundle;
 import io.tokern.bastion.core.Flyway.FlywayFactory;
-import io.tokern.bastion.core.auth.JwtAuthenticator;
-import io.tokern.bastion.core.auth.JwtAuthFilter;
-import io.tokern.bastion.core.auth.JwtAuthorizer;
-import io.tokern.bastion.core.auth.JwtTokenManager;
+import io.tokern.bastion.core.auth.*;
 import io.tokern.bastion.core.executor.Connections;
 import io.tokern.bastion.core.executor.RowSetModule;
 import io.tokern.bastion.core.executor.ThreadPool;
 import io.tokern.bastion.db.DatabaseDAO;
 import io.tokern.bastion.db.QueryDAO;
+import io.tokern.bastion.db.RefreshTokenDao;
+import io.tokern.bastion.db.UserDAO;
 import io.tokern.bastion.resources.*;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 
@@ -91,6 +95,8 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
       final JdbiFactory factory = new JdbiFactory();
       final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
+      final UserDAO userDAO = jdbi.onDemand(UserDAO.class);
+      final RefreshTokenDao refreshTokenDao = jdbi.onDemand(RefreshTokenDao.class);
 
       final Connections connections = new Connections(environment.healthChecks(), environment.metrics(),
           configuration.getEncryptionSecret());
@@ -105,26 +111,41 @@ public class BastionApplication extends Application<BastionConfiguration> {
 
       final JwtTokenManager tokenManager = new JwtTokenManager(configuration.getJwtConfiguration().getJwtSecret(),
           configuration.getJwtConfiguration().getJwtExpirySeconds());
-      final JwtAuthFilter authFilter = new JwtAuthFilter.Builder()
-          .setCookieName(configuration.getJwtConfiguration().getCookieName())
+      final JwtAuthFilter jwtAuthFilter = new JwtAuthFilter.Builder()
           .setPrefix("BEARER")
-          .setAuthenticator(new JwtAuthenticator(configuration.getJwtConfiguration().getJwtSecret(), jdbi))
+          .setAuthenticator(new JwtAuthenticator(configuration.getJwtConfiguration().getJwtSecret(), userDAO))
           .setAuthorizer(new JwtAuthorizer())
           .buildAuthFilter();
+
+      final RefreshTokenManager refreshTokenManager = new RefreshTokenManager(refreshTokenDao,
+          configuration.getJwtConfiguration().getRefreshTokenExpirySeconds(),
+          configuration.getJwtConfiguration().getCookieName());
+      final RefreshTokenAuthFilter refreshTokenAuthFilter = new RefreshTokenAuthFilter.Builder()
+          .setCookieName(configuration.getJwtConfiguration().getCookieName())
+          .setAuthenticator(new RefreshTokenAuthenticator(refreshTokenDao, userDAO))
+          .setAuthorizer(new RefreshTokenAuthorizer())
+          .buildAuthFilter();
+
       final Cache<Long, Future< ThreadPool.Result>> resultCache = CacheBuilder.newBuilder()
           .maximumSize(1000)
           .concurrencyLevel(5)
           .build();
 
-      environment.jersey().register(new UserResource(jdbi, tokenManager));
+      environment.jersey().register(new UserResource(jdbi, tokenManager, refreshTokenManager));
       environment.jersey().register(new DatabaseResource(jdbi, configuration.getEncryptionSecret(), connections));
 
       environment.jersey().register(new QueryResource(jdbi.onDemand(QueryDAO.class), jdbi.onDemand(DatabaseDAO.class),
           connections, threadPool, resultCache));
 
-      environment.jersey().register(new AuthDynamicFeature(authFilter));
+      final PolymorphicAuthDynamicFeature feature = new PolymorphicAuthDynamicFeature<>(
+          ImmutableMap.of(
+              User.class, jwtAuthFilter,
+              RefreshTokenUser.class, refreshTokenAuthFilter));
+      final AbstractBinder binder = new PolymorphicAuthValueFactoryProvider.Binder<>(
+          ImmutableSet.of(User.class, RefreshTokenUser.class));
+
       environment.jersey().register(RolesAllowedDynamicFeature.class);
-      //Required to use @Auth to inject a custom Principal type into your resource
-      environment.jersey().register(new AuthValueFactoryProvider.Binder<>(User.class));
+      environment.jersey().register(feature);
+      environment.jersey().register(binder);
     }
 }

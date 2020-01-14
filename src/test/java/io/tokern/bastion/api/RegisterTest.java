@@ -10,9 +10,9 @@ class RegisterTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
 
   private String body = "\"orgName\":\"Tokern\",\"orgSlug\":\"https://tokern.io\"," +
-      "\"password\":\"passw0rd\"," +
-      "\"userName\":\"user0\"," +
-      "\"email\":\"user0@email.com\"";
+      "\"displayName\":\"user0\"," +
+      "\"userEmail\":\"user0@email.com\"," +
+      "\"password\":\"passw0rd\"";
 
   @Test
   void serializeToJson() throws Exception {

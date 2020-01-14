@@ -51,3 +51,44 @@ values ('google_sysops', 'sysops@google', 'PHPPHP', 'USER', 2);
 insert into queries(sql, user_id, db_id, org_id, state) values ('select 1', 1, 1, 1, 'RUNNING');
 insert into queries(sql, user_id, db_id, org_id, state) values ('select 2', 3, 1, 1, 'SUCCESS');
 insert into queries(sql, user_id, db_id, org_id, state) values ('select 3', 2, 2, 2, 'ERROR');
+
+insert into refresh_tokens(token,
+                           user_id,
+                           org_id,
+                           created_at,
+                           expires_at) values(
+                                              'abcd',
+                                              1, 1,
+                                              '2020-01-01 00:00:00+00',
+                                              '2020-01-01 01:00:00+00');
+
+insert into refresh_tokens(token,
+                           user_id,
+                           org_id,
+                           created_at,
+                           expires_at) values(
+                                              'abcd-1',
+                                              1, 1,
+                                              '2020-01-02 00:00:00+00',
+                                              '2020-01-02 01:00:00+00');
+
+insert into refresh_tokens(token,
+                           user_id,
+                           org_id,
+                           created_at,
+                           expires_at) values(
+                                              'fgh',
+                                              2, 1,
+                                              '2020-01-01 00:00:00+00',
+                                              '2020-01-01 01:00:00+00');
+
+insert into refresh_tokens(token,
+                           user_id,
+                           org_id,
+                           created_at,
+                           expires_at) values(
+                                              'lmn',
+                                              3, 1,
+                                              '2020-01-01 00:00:00+00',
+                                              '2020-01-01 01:00:00+00');
+
