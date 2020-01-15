@@ -63,6 +63,13 @@ class ApplicationDatabaseSetup extends DropwizardAppExtension.ServiceListener<Ba
         orgId.intValue()
     )));
 
+    jdbi.useExtension(UserDAO.class, dao -> dao.insert(new User(
+        "tokern_logout", "logout@tokern.io",
+        PasswordDigest.generateFromPassword("l0g0ut").getDigest(),
+        User.SystemRoles.USER,
+        orgId.intValue()
+    )));
+
     // Insert a few databases
     jdbi.useExtension(DatabaseDAO.class, dao -> dao.insert(new Database(
         "BastionDb",

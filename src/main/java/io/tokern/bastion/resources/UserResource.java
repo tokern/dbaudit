@@ -76,6 +76,13 @@ public class UserResource {
     throw new WebApplicationException("Email or Password is incorrect!", Response.Status.UNAUTHORIZED);
   }
 
+  @Path("/logout")
+  @GET
+  public Response logOutUser(@Auth final User principal) {
+    refreshTokenManager.invalidate(principal);
+    return Response.ok().build();
+  }
+
   @RolesAllowed("ADMIN")
   @POST
   public User createUser(@Auth final User admin, @Valid final User.Request request) {
