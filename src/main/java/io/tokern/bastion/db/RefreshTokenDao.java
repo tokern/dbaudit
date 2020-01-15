@@ -30,8 +30,8 @@ public interface RefreshTokenDao {
   @RegisterConstructorMapper(RefreshToken.class)
   List<RefreshToken> listByUserId(int userId);
 
-  @SqlUpdate("update refresh_tokens set force_invalidated = ? where id = ?")
-  void updateForceInvalidateById(boolean forceInvalidated, int id);
+  @SqlUpdate("update refresh_tokens set force_invalidated = ? where user_id = ? and org_id = ?")
+  void updateForceInvalidateByUserOrgId(boolean forceInvalidated, int userId, int orgId);
 
   @SqlUpdate("delete from refresh_tokens where id=?")
   void deleteById(long id);

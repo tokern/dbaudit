@@ -28,4 +28,8 @@ public class RefreshTokenManager {
 
     return new NewCookie(this.cookieName, refreshToken.token);
   }
+
+  public void invalidate(User user) {
+    refreshTokenDao.updateForceInvalidateByUserOrgId(true, user.id, user.orgId);
+  }
 }

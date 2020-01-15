@@ -7,6 +7,7 @@ import io.tokern.bastion.api.*;
 import io.tokern.bastion.api.Error;
 import io.tokern.bastion.core.auth.JwtTokenManager;
 import io.tokern.bastion.db.DatabaseDAO;
+import io.tokern.bastion.db.RefreshTokenDao;
 import io.tokern.bastion.db.UserDAO;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
@@ -47,6 +48,7 @@ class BastionApplicationTest {
   static User loggedInDbAdmin;
   static User loggedInUser;
   static User updateUser;
+  static User loggedOutUser;
 
   static List<Database> databases;
   @BeforeAll
@@ -63,6 +65,7 @@ class BastionApplicationTest {
     loggedInDbAdmin = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("db@tokern.io"));
     loggedInUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("user@tokern.io"));
     updateUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("put@tokern.io"));
+    loggedOutUser = jdbi.withExtension(UserDAO.class, dao -> dao.getByEmail("logout@tokern.io"));
 
     JwtTokenManager tokenManager = new JwtTokenManager(
         EXTENSION.getConfiguration().getJwtConfiguration().getJwtSecret(),
@@ -107,7 +110,7 @@ class BastionApplicationTest {
     assertEquals(200, response.getStatus());
     User.UserList list = response.readEntity(User.UserList.class);
 
-    assertEquals(4, list.users.size());
+    assertEquals(5, list.users.size());
   }
 
   @Test
@@ -130,6 +133,40 @@ class BastionApplicationTest {
 
     NewCookie cookie = cookies.get("refreshTokern");
     assertNotNull(cookie.getValue());
+  }
+
+  @Test
+  void logOutTest() {
+    LoginRequest request = new LoginRequest("logout@tokern.io", "l0g0ut");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/login")
+            .request().post(entity);
+    LoginResponse loginResponse = response.readEntity(LoginResponse.class);
+
+    assertEquals(200, response.getStatus());
+    assertNotNull(loginResponse);
+    assertFalse(loginResponse.token.isEmpty());
+
+    Map<String, NewCookie> cookies = response.getCookies();
+    assertEquals(1, cookies.size());
+    assertTrue(cookies.containsKey("refreshTokern"));
+
+    NewCookie cookie = cookies.get("refreshTokern");
+    assertNotNull(cookie.getValue());
+
+    final Response logoutResponse =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/logout")
+            .request().header("Authorization", "BEARER " + loginResponse.token).get();
+
+    assertEquals(200, logoutResponse.getStatus());
+    List<RefreshToken> tokens = jdbi.withExtension(RefreshTokenDao.class, dao -> dao.listByUserId(loggedOutUser.id));
+
+    assertFalse(tokens.isEmpty());
+    for (RefreshToken token : tokens) {
+      assertTrue(token.forceInvalidated);
+    }
   }
 
   @Test
@@ -232,6 +269,45 @@ class BastionApplicationTest {
             .request().header("Authorization", "BEARER " + userToken).get();
 
     assertEquals(401, response.getStatus());
+  }
+
+  @Test
+  void failRefreshOnInvalidToken() {
+    LoginRequest request = new LoginRequest("logout@tokern.io", "l0g0ut");
+    Entity<?> entity = Entity.entity(request, MediaType.APPLICATION_JSON);
+
+    final Response response =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/login")
+            .request().post(entity);
+    LoginResponse loginResponse = response.readEntity(LoginResponse.class);
+
+    assertEquals(200, response.getStatus());
+    assertNotNull(loginResponse);
+    assertFalse(loginResponse.token.isEmpty());
+
+    Map<String, NewCookie> cookies = response.getCookies();
+    assertEquals(1, cookies.size());
+    assertTrue(cookies.containsKey("refreshTokern"));
+
+    NewCookie cookie = cookies.get("refreshTokern");
+    assertNotNull(cookie.getValue());
+
+    final Response refreshResponse =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
+            .request().cookie(cookie.toCookie()).get();
+
+    LoginResponse refreshEntity = refreshResponse.readEntity(LoginResponse.class);
+    assertEquals(200, refreshResponse.getStatus());
+    assertNotNull(refreshEntity);
+
+    jdbi.useExtension(RefreshTokenDao.class, dao -> dao.updateForceInvalidateByUserOrgId(true,
+        loggedOutUser.id, loggedOutUser.orgId));
+
+    final Response refreshResponsePostInvalidate =
+        EXTENSION.client().target("http://localhost:" + EXTENSION.getLocalPort() + "/api/users/refreshJWT")
+            .request().cookie(cookie.toCookie()).get();
+
+    assertEquals(401, refreshResponsePostInvalidate.getStatus());
   }
 
   @Test

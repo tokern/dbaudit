@@ -29,6 +29,9 @@ database:
 
 encryptionSecret: s00p3rs3cr3t
 
+jwt:
+  jwtExpirySeconds: 60
+
 flyway:
   schemas:
     - bastion_app

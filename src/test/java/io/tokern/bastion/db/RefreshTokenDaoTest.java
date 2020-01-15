@@ -99,7 +99,7 @@ public class RefreshTokenDaoTest {
 
   @Test
   void testForceInvalidated() {
-    refreshTokenDao.updateForceInvalidateById(true, 1);
+    refreshTokenDao.updateForceInvalidateByUserOrgId(true, 1, 1);
     RefreshToken storedToken = refreshTokenDao.getById(1);
 
     assertTrue(storedToken.forceInvalidated);
