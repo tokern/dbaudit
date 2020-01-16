@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { connect } from 'unistore/react';
 import Button from '../common/Button';
 import DeleteConfirmButton from '../common/DeleteConfirmButton';
@@ -9,14 +9,15 @@ import Text from '../common/Text';
 import fetchJson from '../utilities/fetch-json.js';
 import EditUserForm from './EditUserForm';
 import InviteUserForm from './InviteUserForm';
+import apiCall from "../utilities/apiCall";
 
-function UserList({ currentUser, token }) {
+function UserList({ currentUser }) {
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [editUser, setEditUser] = useState(null);
 
-  const loadUsersFromServer = async () => {
-    const json = await fetchJson('GET', '/api/users', undefined, token);
+  const loadUsersFromServer = useCallback(async () => {
+    const json = await apiCall('GET', '/api/users');
     if (json.error) {
       message.error(json.error);
     }
@@ -27,12 +28,12 @@ function UserList({ currentUser, token }) {
       });
       setUsers(users);
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.title = 'Bastion - Users';
     loadUsersFromServer();
-  }, []);
+  }, [loadUsersFromServer]);
 
   const handleDelete = async user => {
     const json = await fetchJson('DELETE', '/api/users/' + user._id);
@@ -128,4 +129,4 @@ function UserList({ currentUser, token }) {
   );
 }
 
-export default connect(['currentUser', 'token'])(React.memo(UserList));
+export default connect(['currentUser'])(React.memo(UserList));
