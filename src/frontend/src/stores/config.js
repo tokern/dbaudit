@@ -1,11 +1,11 @@
-import fetchJson from '../utilities/fetch-json.js';
+import apiCall from "../utilities/apiCall";
 
 export const refreshAppContext = async () => {
   const {
     config,
     adminRegistrationOpen,
     version
-  } = await fetchJson('GET', '/api/bootstrap');
+  } = await apiCall('GET', '/api/bootstrap');
   if (!config) {
     return;
   }

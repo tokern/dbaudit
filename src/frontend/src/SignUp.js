@@ -5,7 +5,7 @@ import Button from './common/Button';
 import Input from './common/Input';
 import message from './common/message';
 import Spacer from './common/Spacer';
-import fetchJson from './utilities/fetch-json.js';
+import apiCall from "./utilities/apiCall";
 
 function SignUp({ adminRegistrationOpen }) {
   const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ function SignUp({ adminRegistrationOpen }) {
 
   const signUp = async e => {
     e.preventDefault();
-    const json = await fetchJson('POST', '/api/signup', {
+    const json = await apiCall('POST', '/api/signup', {
       email,
       password,
       passwordConfirmation

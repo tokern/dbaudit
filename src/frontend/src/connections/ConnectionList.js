@@ -14,7 +14,6 @@ import ConnectionEditDrawer from './ConnectionEditDrawer';
 
 function ConnectionList({
   currentUser,
-  token,
   loadConnections,
   deleteConnection,
   connections,
@@ -133,7 +132,6 @@ function ConnectionList({
       })}
 
       <ConnectionEditDrawer
-        token={token}
         connectionId={connectionId}
         visible={showEdit}
         onClose={handleEditDrawerClose}
@@ -145,7 +143,7 @@ function ConnectionList({
 }
 
 export default connect(
-  ['connections', 'currentUser', 'token'],
+  ['connections', 'currentUser'],
   store => ({
     selectConnectionId,
     deleteConnection,

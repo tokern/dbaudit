@@ -6,10 +6,10 @@ import Button from './common/Button';
 import Input from './common/Input';
 import message from './common/message';
 import Spacer from './common/Spacer';
-import fetchJson from './utilities/fetch-json.js';
-import {setUserToken} from "./stores/user";
+import {setUser} from "./stores/user";
+import apiCall, {setToken} from "./utilities/apiCall";
 
-function SignIn({ config, setUserToken }) {
+function SignIn({ config, currentUser, setUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [redirect, setRedirect] = useState(false);
@@ -22,15 +22,23 @@ function SignIn({ config, setUserToken }) {
   const signIn = async e => {
     e.preventDefault();
 
-    const json = await fetchJson('POST', '/api/users/login', { email, password });
-    if (json.error) {
+    const response = await apiCall('post', '/api/users/login', {
+      email,
+      password
+    });
+
+    console.log(response);
+
+    if (response.error) {
       return message.error('Username or password incorrect');
     }
-    setUserToken(json);
+
+    setToken(response.token);
+    setUser(response);
     setRedirect(true);
   };
 
-  if (redirect) {
+  if (redirect || currentUser) {
     return <Redirect push to="/" />;
   }
 
@@ -111,8 +119,8 @@ function SignIn({ config, setUserToken }) {
 }
 
 export default connect(
-  ['config'],
+  ['config', 'currentUser'],
   store => ({
-    setUserToken
+    setUser
   })
 )(SignIn);

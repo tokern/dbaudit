@@ -1,10 +1,10 @@
 import uuid from 'uuid';
 import message from '../common/message';
-import fetchJson from '../utilities/fetch-json.js';
 import {
   setLocalQueryText,
   removeLocalQueryText
 } from '../utilities/localQueryText';
+import apiCall from "../utilities/apiCall";
 
 const ONE_HOUR_MS = 1000 * 60 * 60;
 
@@ -37,7 +37,7 @@ export const initialState = {
 export const formatQuery = async state => {
   const { query } = state;
 
-  const json = await fetchJson('POST', '/api/format-sql', {
+  const json = await apiCall('POST', '/api/format-sql', {
     query: query.queryText
   });
 
@@ -61,7 +61,7 @@ export const loadQueries = store => async state => {
     (queriesLastUpdated && new Date() - queriesLastUpdated > ONE_HOUR_MS)
   ) {
     store.setState({ queriesLoading: true });
-    const json = await fetchJson('GET', '/api/queries', undefined, state.token);
+    const json = await apiCall('GET', '/api/queries');
     if (json.error) {
       message.error(json.error);
     }
@@ -79,7 +79,7 @@ export const deleteQuery = store => async (state, queryId) => {
     return q._id !== queryId;
   });
   store.setState({ queries: filteredQueries });
-  const json = await fetchJson('DELETE', '/api/queries/' + queryId, undefined, state.token);
+  const json = await apiCall('DELETE', '/api/queries/' + queryId);
   if (json.error) {
     message.error(json.error);
     store.setState({ queries });
@@ -87,7 +87,7 @@ export const deleteQuery = store => async (state, queryId) => {
 };
 
 export const loadQuery = async (state, queryId) => {
-  const { error, query } = await fetchJson('GET', `/api/queries/${queryId}`, undefined, state.token);
+  const { error, query } = await apiCall('GET', `/api/queries/${queryId}`);
   if (error) {
     message.error(error);
   }
@@ -111,11 +111,10 @@ export const runQuery = store => async state => {
     dbId: selectedConnectionId,
     sql: selectedText || query.queryText
   };
-  const { queryResult, error } = await fetchJson(
+  const { queryResult, error } = await apiCall(
     'POST',
     '/api/queries/run',
     postData,
-    state.token
   );
   if (error) {
     message.error(error);
@@ -139,7 +138,7 @@ export const saveQuery = store => async state => {
     connectionId: selectedConnectionId
   });
   if (query._id) {
-    fetchJson('PUT', `/api/queries/${query._id}`, queryData, state.token).then(json => {
+    apiCall('PUT', `/api/queries/${query._id}`, queryData, state.token).then(json => {
       const { error, query } = json;
       const { queries } = store.getState();
       if (error) {
@@ -160,7 +159,7 @@ export const saveQuery = store => async state => {
       });
     });
   } else {
-    fetchJson('POST', `/api/queries`, queryData, state.token).then(json => {
+    apiCall('POST', `/api/queries`, queryData, state.token).then(json => {
       const { error, query } = json;
       const { queries } = store.getState();
       if (error) {

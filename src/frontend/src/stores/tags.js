@@ -1,12 +1,12 @@
 import message from '../common/message';
-import fetchJson from '../utilities/fetch-json.js';
+import apiCall from "../utilities/apiCall";
 
 export const initialState = {
   availableTags: []
 };
 
 export const loadTags = async state => {
-  const { error, tags } = await fetchJson('GET', '/api/tags');
+  const { error, tags } = await apiCall('GET', '/api/tags');
   if (error) {
     message.error(error);
   }

@@ -1,7 +1,7 @@
 import localforage from 'localforage';
 import message from '../common/message';
-import fetchJson from '../utilities/fetch-json.js';
 import updateCompletions from '../utilities/updateCompletions.js';
+import apiCall from "../utilities/apiCall";
 
 export const initialState = {
   showSchema: false,
@@ -41,7 +41,7 @@ export const loadSchemaInfo = store => async (state, connectionId, reload) => {
     });
 
     const qs = reload ? '?reload=true' : '';
-    const json = await fetchJson(
+    const json = await apiCall(
       'GET',
       `/api/schema-info/${connectionId}${qs}`
     );
