@@ -57,10 +57,10 @@ function ConnectionDropdown({
           );
         })}
 
-        {currentUser.systemRole === 'ADMIN' && (
+        {currentUser && currentUser.systemRole === 'ADMIN' && (
           <option value="new">... New connection</option>
         )}
-        {currentUser.systemRole === 'ADMIN' && (
+        {currentUser && currentUser.systemRole === 'ADMIN' && (
           <option value="manage">... Manage connections</option>
         )}
       </Select>

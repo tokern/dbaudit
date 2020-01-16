@@ -6,13 +6,13 @@ import HorizontalFormItem from '../common/HorizontalFormItem.js';
 import Input from '../common/Input';
 import message from '../common/message';
 import Select from '../common/Select';
-import fetchJson from '../utilities/fetch-json.js';
+import apiCall from "../utilities/apiCall";
 
 const TEXT = 'TEXT';
 const PASSWORD = 'PASSWORD';
 const CHECKBOX = 'CHECKBOX';
 
-function ConnectionForm({ token, connectionId, onConnectionSaved }) {
+function ConnectionForm({ connectionId, onConnectionSaved }) {
   const [connectionEdits, setConnectionEdits] = useState({});
   const [drivers, setDrivers] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -21,7 +21,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
   const [testSuccess, setTestSuccess] = useState(false);
 
   async function getDrivers() {
-    const json = await fetchJson('GET', '/api/databases/drivers', undefined, token);
+    const json = await apiCall('GET', '/api/databases/drivers');
     if (json.error) {
       message.error(json.error);
     } else {
@@ -36,7 +36,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
 
   async function getConnection(connectionId) {
     if (connectionId) {
-      const json = await fetchJson('GET', `/api/connections/${connectionId}`, undefined, token);
+      const json = await apiCall('GET', `/api/connections/${connectionId}`);
       if (json.error) {
         message.error(json.error);
       } else {
@@ -56,7 +56,7 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
 
   const testConnection = async () => {
     setTesting(true);
-    const json = await fetchJson(
+    const json = await apiCall(
       'POST',
       '/api/test-connection',
       connectionEdits
@@ -75,13 +75,13 @@ function ConnectionForm({ token, connectionId, onConnectionSaved }) {
 
     let json;
     if (connectionEdits._id) {
-      json = await fetchJson(
+      json = await apiCall(
         'PUT',
         '/api/databases/' + connectionEdits._id,
         connectionEdits
       );
     } else {
-      json = await fetchJson('POST', '/api/databases', connectionEdits, token);
+      json = await apiCall('POST', '/api/databases', connectionEdits);
     }
 
     if (json.error) {

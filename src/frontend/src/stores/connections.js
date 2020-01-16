@@ -1,7 +1,7 @@
 import localforage from 'localforage';
 import sortBy from 'lodash/sortBy';
 import message from '../common/message';
-import fetchJson from '../utilities/fetch-json.js';
+import apiCall from "../utilities/apiCall";
 
 function sortConnections(connections) {
   return sortBy(connections, [connection => connection.name.toLowerCase()]);
@@ -34,7 +34,7 @@ export const selectConnectionId = (state, selectedConnectionId) => {
 
 export const deleteConnection = async (state, connectionId) => {
   const { connections } = state;
-  const json = await fetchJson('DELETE', '/api/databases/' + connectionId, undefined, state.token);
+  const json = await apiCall('DELETE', '/api/databases/' + connectionId);
   if (json.error) {
     return message.error('Delete failed');
   }
@@ -58,14 +58,14 @@ export const addUpdateConnection = async (state, connection) => {
   return { connections: sortConnections([connection].concat(connections)) };
 };
 
-export const loadConnections = store => async (state, force) => {
+export const loadConnections = store => async (state) => {
   const { connections, connectionsLoading } = state;
   if (connectionsLoading) {
     return;
   }
 
   store.setState({ connectionsLoading: true });
-  const { error, databases } = await fetchJson('GET', '/api/databases/', undefined, state.token);
+  const { error, databases } = await apiCall('GET', '/api/databases/');
   if (error) {
     message.error(error);
   }

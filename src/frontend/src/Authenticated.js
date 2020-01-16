@@ -1,15 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'unistore/react';
-import { refreshAppContext } from './stores/config';
 import { Redirect } from 'react-router-dom';
-import { getUserToken } from "./stores/user";
 
-function Authenticated({ children, adminRegistrationOpen, token, refreshAppContext }) {
+function Authenticated({ children, adminRegistrationOpen, currentUser}) {
   if (adminRegistrationOpen) {
     return <Redirect to={{pathname: '/register'}}/>;
   }
-  if (token === undefined) {
+  if (currentUser === undefined) {
     return <Redirect to={{ pathname: '/signin' }} />;
   }
 
@@ -21,9 +19,5 @@ Authenticated.propTypes = {
 };
 
 export default connect(
-  ['adminRegistrationOpen', 'token'],
-  store => ({
-    refreshAppContext,
-    getUserToken
-  })
+  ['adminRegistrationOpen', 'currentUser'],
 )(Authenticated);

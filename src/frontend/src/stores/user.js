@@ -1,13 +1,16 @@
+import apiCall from "../utilities/apiCall";
+
 export const initialState = {
-    token: undefined
+    currentUser: undefined
 };
 
-export const setUserToken = (state, loginResponse) => {
-    return {token: loginResponse.token, currentUser: loginResponse.user}
+export const setUser = (state, loginResponse) => {
+    return {currentUser: loginResponse.user}
 };
 
-export const signOut = (state) => {
-    return {token: undefined, currentUser: undefined}
+export const signOut = async state => {
+    await apiCall("GET", "/api/users/logout");
+    return {currentUser: undefined}
 };
 
 export function getUserToken(store) {
@@ -18,7 +21,7 @@ export function getUserToken(store) {
 
 export default {
     initialState,
-    setUserToken,
+    setUser,
     getUserToken,
     signOut
 };
