@@ -34,6 +34,9 @@
     "unistore": "^3.5.0",
     "whatwg-fetch": "^3.0.0"
   },
+  "resolutions": {
+    "serialize-javascript": "^2.1.1"
+  },
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "build": "react-scripts build",
