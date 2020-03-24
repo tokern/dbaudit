@@ -30,7 +30,7 @@ if [ "$PUBLISH" == "YES" ] && [ -z "$DOCKERHUB_USERNAME" -o -z "$DOCKERHUB_PASSW
     exit 1
 fi
 
-DOCKERHUB_REPOSITORY=bastion
+DOCKERHUB_REPOSITORY=dbaudit
 DOCKER_IMAGE="${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}:${TAG}"
 
 echo "Building Docker image ${DOCKER_IMAGE} from official Tokern release ${TAG}"
@@ -38,8 +38,8 @@ echo "Building Docker image ${DOCKER_IMAGE} from official Tokern release ${TAG}"
 # now tell docker to build our image
 mkdir -p $BASEDIR
 cp $PROJECT_ROOT/config.yml $BASEDIR
-cp $PROJECT_ROOT/target/bastion.jar $BASEDIR
-cp $PROJECT_ROOT/docker/run_bastion.sh $BASEDIR
+cp $PROJECT_ROOT/target/db-audit.jar $BASEDIR
+cp $PROJECT_ROOT/docker/run_db_audit.sh $BASEDIR
 cp -r $PROJECT_ROOT/target/lib $BASEDIR
 
 docker build -t ${DOCKER_IMAGE} -f $PROJECT_ROOT/docker/Dockerfile $BASEDIR

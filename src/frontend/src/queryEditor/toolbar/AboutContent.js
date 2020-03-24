@@ -20,7 +20,7 @@ function AboutContent({ version }) {
         }}
       >
         <a
-          href="https://tokern.io/bastion"
+          href="https://tokern.io/database-audit"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -28,7 +28,7 @@ function AboutContent({ version }) {
           Project page <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/tokern/bastion/issues"
+          href="https://github.com/tokern/dbaudit/issues"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -36,7 +36,7 @@ function AboutContent({ version }) {
           Submit an Issue <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/tokern/bastion/releases"
+          href="https://github.com/tokern/dbaudit/releases"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}
@@ -44,7 +44,7 @@ function AboutContent({ version }) {
           Changelog <OpenInNewIcon size={18} />
         </a>
         <a
-          href="https://github.com/tokern/bastion"
+          href="https://github.com/tokern/dbaudit"
           target="_blank"
           rel="noopener noreferrer"
           style={LINK_STYLE}

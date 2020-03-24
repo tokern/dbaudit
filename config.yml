@@ -1,7 +1,7 @@
 logging:
   level: INFO
   loggers:
-    io.tokern: ${BASTION_LOG_LEVEL:-INFO}
+    io.tokern: ${DBAUDIT_LOG_LEVEL:-INFO}
 server:
   rootPath: /api
   applicationConnectors:
@@ -14,12 +14,12 @@ server:
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
-  user: ${BASTION_USER:-}
-  password: ${BASTION_PWD:-}
-  url: ${BASTION_JDBC_URL:-}
+  user: ${DBAUDIT_USER:-}
+  password: ${DBAUDIT_PWD:-}
+  url: ${DBAUDIT_JDBC_URL:-}
 
-encryptionSecret: ${BASTION_ENCRYPTION_PASSWORD:-}
+encryptionSecret: ${DBAUDIT_ENCRYPTION_PASSWORD:-}
 
 flyway:
   schemas:
-    - ${BASTION_SCHEMA:-}
+    - ${DBAUDIT_SCHEMA:-}

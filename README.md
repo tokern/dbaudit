@@ -1,13 +1,13 @@
-# Bastion
-Tokern Bastion provides secure and seamless access to production databases in 
+# DbAudit
+Tokern DbAudit provides secure and seamless access to production databases in 
 AWS and GCP for operations and support teams.
 
-![Bastion Query UI](Screenshot.png?raw=true "Bastion Query UI")
+![DbAudit Query UI](Screenshot.png?raw=true "DbAudit Query UI")
 
 Security teams get a single pane for privileged access management for all production databases.
 
-[![CircleCI](https://circleci.com/gh/tokern/bastion.svg?style=svg)](https://circleci.com/gh/tokern/bastion)
-[![codecov](https://codecov.io/gh/tokern/bastion/branch/master/graph/badge.svg)](https://codecov.io/gh/tokern/bastion)
+[![CircleCI](https://circleci.com/gh/tokern/dbaudit.svg?style=svg)](https://circleci.com/gh/tokern/dbaudit)
+[![codecov](https://codecov.io/gh/tokern/dbaudit/branch/master/graph/badge.svg)](https://codecov.io/gh/tokern/dbaudit)
 
 # Features
 
@@ -29,35 +29,36 @@ Security teams get a single pane for privileged access management for all produc
 
 # Installation
 
-Bastion has multiple installation options. For a quick start, follow the 
+DbAudit has multiple installation options. For a quick start, follow the 
 instructions below:
 
 ## Docker Compose
 
-    docker-compose -f docker/docker-compose.yml -p bastion up
+    docker-compose -f docker/docker-compose.yml -p dbaudit up
     
 The command starts up a self contained service consisting of a PostgreSQL
-database and Bastion app. 
+database and DbAudit app. 
 
 ## Docker (Bring Your Own Database)
 
-Bastion uses a PostgreSQL database to store metadata. If you want to use your
+DbAudit uses a PostgreSQL database to store metadata. If you want to use your
 own database, setup environment variables and use `docker run`.
 
     docker run -d -p 3145:3145 \
-        --env BASTION_USER=<database user> \
-        --env BASTION_PWD=<password> \
-        --env BASTION_DB=<postgresql database> \
-        --env BASTION_SCHEMA=<database schema> \
+        --env DBAUDIT_USER=<database user> \
+        --env DBAUDIT_PWD=<password> \
+        --env DBAUDIT_DB=<postgresql database> \
+        --env DBAUDIT_SCHEMA=<database schema> \
         --env POSTGRESQL_HOSTNAME=<hostname of postgresql instance> \
         --env POSTGRESQL_PORT=<port of postgresql instance  \
-        tokern/bastion:latest
+        tokern/dbaudit:latest
      
 # Next Steps
 Visit http://localhost:3145 to start using the application.
 
 # Documentation
-Visit [Bastion documentation](https://tokern.io/docs/bastion) to deploy and use in 
+Visit [DbAudit documentation](https://tokern.io/docs/database-audit/) to deploy and use in 
 production to protect databases in AWS, GCP or your data center.
 
-Visit [Bastion - Database Privileged Access Management](https://tokern.io/bastion) page for features and use cases. 
+Visit [DbAudit - Database Auditor & Privilege Access Manager](https://tokern.io/database-audit/) page for features and 
+use cases. 
